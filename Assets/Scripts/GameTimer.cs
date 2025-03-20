@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro; 
 
-
 public class GameTimer : MonoBehaviour
 {
     public float startTime = 60f;        // Starting time in seconds
@@ -15,6 +14,7 @@ public class GameTimer : MonoBehaviour
     void Start()
     {
         currentTime = startTime;
+        timerText = GameObject.Find("TimerText").GetComponent<TMP_Text>(); // Correct component
         
         if (timerText == null)
         {
