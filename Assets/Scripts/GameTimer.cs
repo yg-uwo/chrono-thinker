@@ -1,13 +1,14 @@
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using TMPro; 
+
 
 public class GameTimer : MonoBehaviour
 {
     public float startTime = 60f;        // Starting time in seconds
-    public Text timerText;               // UI Text element to display timer
+    public TMP_Text timerText;           // Use TMP_Text instead of Text
     public bool countDown = true;        // If true, counts down; if false, counts up
-    public float timeReductionOnCollision = 5f; // How much time to reduce when enemy hits obstacle
+    public float timeReductionOnCollision = 5f; // Time reduction on collision
     
     private float currentTime;
     
@@ -15,10 +16,9 @@ public class GameTimer : MonoBehaviour
     {
         currentTime = startTime;
         
-        // Check if the timer text reference is set
         if (timerText == null)
         {
-            Debug.LogWarning("Timer Text reference not set. Please assign a UI Text element.");
+            Debug.LogWarning("Timer Text reference not set. Please assign a TextMeshPro UI element.");
         }
     }
     
@@ -28,7 +28,6 @@ public class GameTimer : MonoBehaviour
         {
             currentTime -= Time.deltaTime;
             
-            // Check if time is up
             if (currentTime <= 0)
             {
                 currentTime = 0;
@@ -47,7 +46,6 @@ public class GameTimer : MonoBehaviour
     {
         if (timerText != null)
         {
-            // Format time as minutes:seconds
             int minutes = Mathf.FloorToInt(currentTime / 60);
             int seconds = Mathf.FloorToInt(currentTime % 60);
             timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
@@ -67,7 +65,6 @@ public class GameTimer : MonoBehaviour
     void GameOver()
     {
         Debug.Log("Time's up! Game Over!");
-        // Reload current level
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
