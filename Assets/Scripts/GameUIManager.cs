@@ -158,7 +158,7 @@ public class GameUIManager : MonoBehaviour
     
     // Singleton pattern for easy access
     public static GameUIManager Instance { get; private set; }
-    
+
     private void Awake()
     {
         // Singleton setup
@@ -381,13 +381,29 @@ public void ShowVictory(float finalTime)
     {
         SceneManager.LoadScene(levelName);
     }
+
+     public void ShowGameOverPanel()
+    {
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+        }
+        else
+        {
+            Debug.LogError("GameOverPanel is not assigned in the Inspector!");
+        }
+    }
     
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
     // For restart button in game over panel
     public void RestartButton()
     {
         RestartLevel();
     }
-    
     // For quit button
     public void QuitGame()
     {
