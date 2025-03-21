@@ -10,11 +10,12 @@
 //     public float timeReductionOnCollision = 5f; // Time reduction on collision
     
 //     private float currentTime;
+//     private bool isGameOver = false;
     
 //     void Start()
 //     {
 //         currentTime = startTime;
-//         timerText = GameObject.Find("TimerText").GetComponent<TMP_Text>(); // Correct component
+//         timerText = GameObject.Find("TimerText")?.GetComponent<TMP_Text>(); // Correct component
         
 //         if (timerText == null)
 //         {
@@ -24,6 +25,9 @@
     
 //     void Update()
 //     {
+//         if (isGameOver)
+//             return;
+            
 //         if (countDown)
 //         {
 //             currentTime -= Time.deltaTime;
@@ -54,7 +58,14 @@
     
 //     public void ReduceTime(float amount)
 //     {
+//         if (isGameOver)
+//             return;
+            
 //         currentTime -= amount;
+        
+//         // Show UI notification
+//         GameUIManager.Instance?.ShowTimeReduction(amount);
+        
 //         if (currentTime < 0)
 //         {
 //             currentTime = 0;
@@ -64,15 +75,29 @@
     
 //     void GameOver()
 //     {
+//         isGameOver = true;
 //         Debug.Log("Time's up! Game Over!");
-//         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        
+//         // Show game over UI
+//         GameUIManager.Instance?.ShowTimeUpGameOver(currentTime);
+        
+//         // Disable player movement
+//         SimplePlayerMovement playerMovement = FindObjectOfType<SimplePlayerMovement>();
+//         if (playerMovement != null)
+//         {
+//             playerMovement.enabled = false;
+//         }
+//     }
+    
+//     public float GetCurrentTime()
+//     {
+//         return currentTime;
 //     }
 // }
 
-
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro; 
+using TMPro;
 
 public class GameTimer : MonoBehaviour
 {
@@ -83,16 +108,32 @@ public class GameTimer : MonoBehaviour
     
     private float currentTime;
     private bool isGameOver = false;
+    private GameUIManager uiManager;
     
     void Start()
     {
         currentTime = startTime;
-        timerText = GameObject.Find("TimerText")?.GetComponent<TMP_Text>(); // Correct component
         
+        // Try to find timer text if not assigned
         if (timerText == null)
         {
-            Debug.LogWarning("Timer Text reference not set. Please assign a TextMeshPro UI element.");
+            timerText = GameObject.Find("TimerText")?.GetComponent<TMP_Text>();
+            
+            if (timerText == null)
+            {
+                Debug.LogWarning("Timer Text reference not set. Please assign a TextMeshPro UI element.");
+            }
         }
+        
+        // Find UI Manager
+        uiManager = FindObjectOfType<GameUIManager>();
+        if (uiManager == null)
+        {
+            Debug.LogWarning("GameUIManager not found! UI notifications won't work.");
+        }
+        
+        // Initial update of timer display
+        UpdateTimerDisplay();
     }
     
     void Update()
@@ -133,25 +174,48 @@ public class GameTimer : MonoBehaviour
         if (isGameOver)
             return;
             
+        Debug.Log($"Reducing time by {amount} seconds. Current time before reduction: {currentTime}");
+        
+        // Calculate new time
         currentTime -= amount;
         
-        // Show UI notification
-        GameUIManager.Instance?.ShowTimeReduction(amount);
+        // Update the timer display immediately
+        UpdateTimerDisplay();
         
-        if (currentTime < 0)
+        // Show UI notification
+        if (uiManager != null)
+        {
+            uiManager.ShowTimeReduction(amount);
+        }
+        
+        Debug.Log($"New time after reduction: {currentTime}");
+        
+        if (currentTime <= 0)
         {
             currentTime = 0;
+            UpdateTimerDisplay(); // Update display once more
             GameOver();
         }
     }
     
     void GameOver()
     {
+        if (isGameOver) return; // Prevent multiple calls
+        
         isGameOver = true;
         Debug.Log("Time's up! Game Over!");
         
         // Show game over UI
-        GameUIManager.Instance?.ShowTimeUpGameOver(currentTime);
+        if (uiManager != null)
+        {
+            uiManager.ShowTimeUpGameOver(currentTime);
+        }
+        else
+        {
+            // Fallback if no UI manager
+            Debug.LogWarning("No UI Manager found. Restarting level directly.");
+            Invoke("RestartLevel", 2f);
+        }
         
         // Disable player movement
         SimplePlayerMovement playerMovement = FindObjectOfType<SimplePlayerMovement>();
@@ -159,6 +223,11 @@ public class GameTimer : MonoBehaviour
         {
             playerMovement.enabled = false;
         }
+    }
+    
+    private void RestartLevel()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
     
     public float GetCurrentTime()

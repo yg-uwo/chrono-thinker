@@ -84,33 +84,63 @@ public class EnemyAI : MonoBehaviour
         transform.position = Vector2.MoveTowards(transform.position, player.position, moveSpeed * Time.deltaTime);
     }
     
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (isGameOver)
-            return;
+    // private void OnTriggerEnter2D(Collider2D other)
+    // {
+    //     if (isGameOver)
+    //         return;
             
-        if (other.CompareTag("Player"))
-        {
-            Debug.Log("Player caught by enemy! Game Over!");
-            isGameOver = true;
+    //     if (other.CompareTag("Player"))
+    //     {
+    //         Debug.Log("Player caught by enemy! Game Over!");
+    //         isGameOver = true;
             
-            // Get current time from GameTimer
-            GameTimer gameTimer = FindObjectOfType<GameTimer>();
-            float finalTime = gameTimer != null ? gameTimer.GetCurrentTime() : 0f;
+    //         // Get current time from GameTimer
+    //         GameTimer gameTimer = FindObjectOfType<GameTimer>();
+    //         float finalTime = gameTimer != null ? gameTimer.GetCurrentTime() : 0f;
             
-            // Show game over UI
-            GameUIManager.Instance?.ShowEnemyCaughtGameOver(finalTime);
+    //         // Show game over UI
+    //         GameUIManager.Instance?.ShowEnemyCaughtGameOver(finalTime);
             
-            // Disable player movement
-            other.GetComponent<SimplePlayerMovement>().enabled = false;
-        }
+    //         // Disable player movement
+    //         other.GetComponent<SimplePlayerMovement>().enabled = false;
+    //     }
         
-        if (other.CompareTag("Obstacle"))
-        {
-            // Slow down enemy briefly when it hits an obstacle
-            StartCoroutine(SlowDownEnemy());
-        }
+    //     if (other.CompareTag("Obstacle"))
+    //     {
+    //         // Slow down enemy briefly when it hits an obstacle
+    //         StartCoroutine(SlowDownEnemy());
+    //     }
+    // }
+
+    private void OnTriggerEnter2D(Collider2D other)
+{
+    if (isGameOver)
+        return;
+        
+    if (other.CompareTag("Player"))
+    {
+        Debug.Log("Player caught by enemy! Game Over!");
+        isGameOver = true;
+        
+        // Get current time from GameTimer
+        GameTimer gameTimer = FindObjectOfType<GameTimer>();
+        float finalTime = gameTimer != null ? gameTimer.GetCurrentTime() : 0f;
+        
+        // Show game over UI
+        GameUIManager.Instance?.ShowEnemyCaughtGameOver(finalTime);
+        
+        // Disable player movement
+        other.GetComponent<SimplePlayerMovement>().enabled = false;
     }
+    
+    // Make sure to log when obstacle is hit
+    if (other.CompareTag("Obstacle"))
+    {
+        Debug.Log("Enemy hit an obstacle!");
+        // Slow down enemy briefly when it hits an obstacle
+        StartCoroutine(SlowDownEnemy());
+    }
+}
     
     private System.Collections.IEnumerator SlowDownEnemy()
     {
