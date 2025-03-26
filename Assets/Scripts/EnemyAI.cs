@@ -1,95 +1,117 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using System.Collections;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class EnemyAI : MonoBehaviour 
 {
+    [Header("Movement Settings")]
     public float moveSpeed = 2f;
+    
+    [Header("Attack Settings")]
+    public float attackDamage = 10f;           // Damage per attack
+    public float attackCooldown = 2f;          // Time between attacks
+    public float minimumDistanceToPlayer = 0.8f; // Distance at which enemy stops moving
+    public float attackDamageDelay = 0.3f;       // Delay (in seconds) before damage is applied to sync with sword swing
+
+    private Rigidbody2D rb;
     private Transform player;
-    private bool isGameOver = false;
+    private bool canAttack = true;
+    private Animator animator;
     
-    private void Start()
+    void Start()
     {
-        // Automatically find the player GameObject by tag
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        rb = GetComponent<Rigidbody2D>();
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         
-        // Check if the player was found
+        animator = GetComponent<Animator>();
+        
+        // Find the player by tag
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+        }
+        else
+        {
+            Debug.LogError("Player not found! Ensure the player has the 'Player' tag.");
+        }
+    }
+    
+    void FixedUpdate()
+    {
         if (player == null)
-        {
-            Debug.LogError("Player not found! Make sure the player has the 'Player' tag.");
-        }
-    }
-    
-    private void Update()
-    {
-        if (isGameOver || player == null)
             return;
-            
-        // Move toward the player's position
-        transform.position = Vector2.MoveTowards(transform.position, player.position, moveSpeed * Time.deltaTime);
-    }
-    
-
-//     private void OnTriggerEnter2D(Collider2D other)
-// {
-//     Debug.Log("Enemy has hit the player..sad");
-//     Debug.Log("Enemy collision with: " + other.gameObject.name + " tag: " + other.tag);
-//     if (isGameOver)
-//         return;
         
-//     if (other.CompareTag("Player"))
-//     {
-//         Debug.Log("Player caught by enemy! Game Over!");
-//         isGameOver = true;
+        // Calculate direction and distance to player
+        Vector2 direction = (player.position - transform.position).normalized;
+        float distance = Vector2.Distance(rb.position, player.position);
         
-       
-//         GameTimer gameTimer = FindObjectOfType<GameTimer>();
-//         float finalTime = gameTimer != null ? gameTimer.GetCurrentTime() : 0f;
+        // Rotate enemy so that its bottom (-up) faces the player
+        transform.up = -direction;
         
-        
-//         GameUIManager.Instance?.ShowEnemyCaughtGameOver(finalTime);
-        
-        
-//         other.GetComponent<SimplePlayerMovement>().enabled = false;
-//     }
-    
-
-//     if (other.gameObject.name == "Obstacle" || 
-//     other.gameObject.name == "Obstacle_1" || 
-//     other.gameObject.name == "Obstacle_2" || 
-//     other.gameObject.name == "Obstacle_3")
-// {
-//     Debug.Log("Enemy hit an obstacle!");
-//     StartCoroutine(SlowDownEnemy());
-// }
-// }
-
-private void OnTriggerEnter2D(Collider2D other)
-{
-    Debug.Log("Enemy collision with: " + other.gameObject.name + " tag: " + other.tag);
-    if (isGameOver)
-        return;
-    
-    if (other.CompareTag("Player"))
-    {
-        Debug.Log("Player caught by enemy! Game Over!");
-        isGameOver = true;
-        GameTimer gameTimer = FindObjectOfType<GameTimer>();
-        float finalTime = gameTimer != null ? gameTimer.GetCurrentTime() : 0f;
-        GameUIManager.Instance?.ShowEnemyCaughtGameOver(finalTime);
-        SimplePlayerMovement playerMovement = other.GetComponent<SimplePlayerMovement>();
-        if (playerMovement != null)
+        // Move toward the player if farther than the minimum distance
+        if (distance > minimumDistanceToPlayer)
         {
-            playerMovement.enabled = false;
+            Vector2 newPos = rb.position + direction * moveSpeed * Time.fixedDeltaTime;
+            // Clamp so enemy stops at minimum distance
+            if (Vector2.Distance(newPos, player.position) < minimumDistanceToPlayer)
+            {
+                newPos = (Vector2)player.position - direction * minimumDistanceToPlayer;
+            }
+            rb.MovePosition(newPos);
         }
-        this.enabled = false;
+        else
+        {
+            // When close enough, attack if allowed
+            if (canAttack)
+            {
+                Attack();
+            }
+        }
     }
-}
     
-    private System.Collections.IEnumerator SlowDownEnemy()
+    private void Attack()
     {
-        float originalSpeed = moveSpeed;
-        moveSpeed = moveSpeed / 2;
-        yield return new WaitForSeconds(1.5f);
-        moveSpeed = originalSpeed;
+        Debug.Log("Enemy triggers sword swing animation!");
+        
+        // Trigger the sword swing animation using the Animator Controller's "Attack" trigger
+        if (animator != null)
+        {
+            animator.SetTrigger("Attack");
+        }
+        else
+        {
+            Debug.LogWarning("Animator component not found on enemy!");
+        }
+        
+        // Delay the damage to match the swing timing
+        StartCoroutine(DealDamageAfterDelay());
+        
+        // Begin cooldown to prevent spamming attacks
+        canAttack = false;
+        StartCoroutine(AttackCooldown());
+    }
+    
+    private IEnumerator DealDamageAfterDelay()
+    {
+        yield return new WaitForSeconds(attackDamageDelay);
+        if (player != null)
+        {
+            PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                playerHealth.TakeDamage(attackDamage);
+            }
+            else
+            {
+                Debug.LogWarning("PlayerHealth component not found on player.");
+            }
+        }
+    }
+    
+    private IEnumerator AttackCooldown()
+    {
+        yield return new WaitForSeconds(attackCooldown);
+        canAttack = true;
     }
 }

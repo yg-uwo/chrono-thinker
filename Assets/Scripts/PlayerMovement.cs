@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 public class SimplePlayerMovement : MonoBehaviour
@@ -15,43 +14,48 @@ public class SimplePlayerMovement : MonoBehaviour
     public bool freezeRotation = true;
     
     private Rigidbody2D rb;
+    private Vector2 movementInput;
     
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         
-        // Disable rigidbody rotation if requested
         if (rb != null && freezeRotation)
         {
             rb.freezeRotation = true;
         }
         
-        // Print a debug message to confirm script is running
         Debug.Log("SimplePlayerMovement script started");
     }
     
     void Update()
     {
-        // Get input
+        // Read input in Update
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
         
-        // Create movement vector
-        Vector3 movement = new Vector3(horizontalInput, verticalInput, 0);
+        movementInput = new Vector2(horizontalInput, verticalInput);
         
         // Normalize if moving diagonally
-        if (movement.magnitude > 1)
+        if (movementInput.magnitude > 1)
         {
-            movement.Normalize();
+            movementInput.Normalize();
         }
-        
-        // Apply movement
-        transform.position += movement * moveSpeed * Time.deltaTime;
-        
-        // Clamp position to stay within bounds
-        float newX = Mathf.Clamp(transform.position.x, minX, maxX);
-        float newY = Mathf.Clamp(transform.position.y, minY, maxY);
-        transform.position = new Vector3(newX, newY, transform.position.z);
-        
+    }
+    
+    void FixedUpdate()
+    {
+        if (rb != null)
+        {
+            // Calculate the target position based on input
+            Vector2 targetPosition = rb.position + movementInput * moveSpeed * Time.fixedDeltaTime;
+            
+            // Clamp the position within the defined boundaries
+            targetPosition.x = Mathf.Clamp(targetPosition.x, minX, maxX);
+            targetPosition.y = Mathf.Clamp(targetPosition.y, minY, maxY);
+            
+            // Move the Rigidbody smoothly using MovePosition
+            rb.MovePosition(targetPosition);
+        }
     }
 }
