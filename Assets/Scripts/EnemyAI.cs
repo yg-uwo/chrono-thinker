@@ -8,10 +8,10 @@ public class EnemyAI : MonoBehaviour
     public float moveSpeed = 2f;
     
     [Header("Attack Settings")]
-    public float attackDamage = 10f;           // Damage per attack
-    public float attackCooldown = 2f;          // Time between attacks
-    public float minimumDistanceToPlayer = 0.8f; // Distance at which enemy stops moving
-    public float attackDamageDelay = 0.3f;       // Delay (in seconds) before damage is applied to sync with sword swing
+    public float attackDamage = 10f;            // Damage per attack
+    public float attackCooldown = 2f;           // Time between attacks
+    public float minimumDistanceToPlayer = 0.8f;  // Distance at which enemy stops moving
+    public float attackDamageDelay = 0.3f;        // Delay before damage is applied to sync with swing
 
     private Rigidbody2D rb;
     private Transform player;
@@ -22,6 +22,8 @@ public class EnemyAI : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        // Prevent the rigidbody from sleeping so it always updates, even when stationary.
+        rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
         
         animator = GetComponent<Animator>();
         
@@ -42,6 +44,10 @@ public class EnemyAI : MonoBehaviour
         if (player == null)
             return;
         
+        // Ensure the Rigidbody is awake (for extra safety)
+        if (rb.IsSleeping())
+            rb.WakeUp();
+        
         // Calculate direction and distance to player
         Vector2 direction = (player.position - transform.position).normalized;
         float distance = Vector2.Distance(rb.position, player.position);
@@ -49,11 +55,14 @@ public class EnemyAI : MonoBehaviour
         // Rotate enemy so that its bottom (-up) faces the player
         transform.up = -direction;
         
-        // Move toward the player if farther than the minimum distance
-        if (distance > minimumDistanceToPlayer)
+        // A small tolerance value (epsilon) to account for floating point error.
+        float epsilon = 0.05f;
+        
+        // If the enemy is further than (minimumDistanceToPlayer + epsilon), move toward the player.
+        if (distance > minimumDistanceToPlayer + epsilon)
         {
             Vector2 newPos = rb.position + direction * moveSpeed * Time.fixedDeltaTime;
-            // Clamp so enemy stops at minimum distance
+            // Prevent overshooting: if newPos is too close, clamp it.
             if (Vector2.Distance(newPos, player.position) < minimumDistanceToPlayer)
             {
                 newPos = (Vector2)player.position - direction * minimumDistanceToPlayer;
@@ -62,13 +71,14 @@ public class EnemyAI : MonoBehaviour
         }
         else
         {
-            // When close enough, attack if allowed
+            // When close enough (within tolerance), trigger an attack if allowed
             if (canAttack)
             {
                 Attack();
             }
         }
     }
+
     
     private void Attack()
     {
