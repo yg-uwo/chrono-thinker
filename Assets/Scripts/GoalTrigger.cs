@@ -1,60 +1,9 @@
-// using UnityEngine;
-// using UnityEngine.SceneManagement;
-
-// public class GoalTrigger : MonoBehaviour 
-// {
-//     public string nextLevelName = "Level2"; // Set this in inspector
-//     public float completionDelay = 1.0f;    // Time before loading next level
-//     public bool isFinalLevel = false;       // Is this the final level?
-    
-//     private void OnTriggerEnter2D(Collider2D other)
-//     {
-//         if (other.CompareTag("Player"))
-//         {
-//             Debug.Log("Level Complete!");
-            
-//             // Disable player movement to prevent further input
-//             other.GetComponent<SimplePlayerMovement>().enabled = false;
-            
-//             // Get current time from GameTimer
-//             GameTimer gameTimer = FindObjectOfType<GameTimer>();
-//             float finalTime = gameTimer != null ? gameTimer.GetCurrentTime() : 0f;
-            
-//             // Show victory UI
-//             GameUIManager.Instance?.ShowVictory(finalTime);
-            
-//             // Handle level completion
-//             StartCoroutine(CompleteLevel());
-//         }
-//     }
-    
-//     private System.Collections.IEnumerator CompleteLevel()
-//     {
-//         // Wait for specified delay (for victory effects)
-//         yield return new WaitForSeconds(completionDelay);
-        
-//         // If it's the final level, you could load a victory screen
-//         if (isFinalLevel)
-//         {
-//             // For now, just reload the current level
-//             // Later you can create a Victory scene
-//             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-//         }
-//         else
-//         {
-//             // Load the next level
-//             SceneManager.LoadScene(nextLevelName);
-//         }
-//     }
-// }
-
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GoalTrigger : MonoBehaviour 
 {
     public string nextLevelName = "Level2"; // Set this in inspector
-    public float completionDelay = 1.0f;    // Time before loading next level
     public bool isFinalLevel = false;       // Is this the final level?
     public GameObject victoryPanel;         // Reference to the victory panel
     
@@ -82,7 +31,7 @@ public class GoalTrigger : MonoBehaviour
             levelCompleted = true;
             
             // Disable player movement to prevent further input
-            SimplePlayerMovement playerMovement = other.GetComponent<SimplePlayerMovement>();
+            PlayerMovement playerMovement = other.GetComponent<PlayerMovement>();
             if (playerMovement != null)
             {
                 playerMovement.enabled = false;
@@ -90,7 +39,7 @@ public class GoalTrigger : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("SimplePlayerMovement component not found on player!");
+                Debug.LogWarning("PlayerMovement component not found on player!");
             }
             
             // Get current time from GameTimer
@@ -107,9 +56,13 @@ public class GoalTrigger : MonoBehaviour
                 Debug.LogWarning("GameTimer not found! Cannot get time.");
             }
             
-            // Show victory UI
+            // Show victory UI with Next Level button
             if (uiManager != null)
             {
+                // Configure the Next Level button through the UI Manager
+                SetupNextLevelButton();
+                
+                // Show the victory panel
                 uiManager.ShowVictory(finalTime);
                 Debug.Log("Victory UI shown with time: " + finalTime);
             }
@@ -118,30 +71,19 @@ public class GoalTrigger : MonoBehaviour
                 Debug.LogError("UI Manager not found! Cannot show victory panel.");
             }
             
-            // Handle level completion
-            StartCoroutine(CompleteLevel());
+            // Note: We're no longer automatically loading the next level
+            // The player will use the "Next Level" button in the victory panel
         }
     }
     
-    private System.Collections.IEnumerator CompleteLevel()
+    private void SetupNextLevelButton()
     {
-        Debug.Log($"Waiting {completionDelay} seconds before loading next level");
-        // Wait for specified delay (for victory effects)
-        yield return new WaitForSeconds(completionDelay);
-        
-        // If it's the final level, you could load a victory screen
-        if (isFinalLevel)
+        // Find and configure the Next Level button in the UI Manager
+        if (uiManager != null)
         {
-            Debug.Log("This is the final level. Reloading current scene.");
-            // For now, just reload the current level
-            // Later you can create a Victory scene
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
-        else
-        {
-            Debug.Log($"Loading next level: {nextLevelName}");
-            // Load the next level
-            SceneManager.LoadScene(nextLevelName);
+            // Set the Next Level button to load the appropriate scene
+            // This is handled by the LoadNextLevel method in GameUIManager
+            Debug.Log($"Next level is set to: {nextLevelName}, isFinalLevel: {isFinalLevel}");
         }
     }
 }

@@ -1,0 +1,62 @@
+CHRONO-THINKER UI BUTTON SETUP GUIDE
+===================================
+
+This guide will help you set up and connect the buttons in your game's UI panels.
+
+VICTORY PANEL SETUP
+------------------
+1. Open your Level1 scene
+2. Find the VictoryPanel GameObject in the Hierarchy
+3. Make sure it has the following buttons:
+
+   a. NEXT LEVEL BUTTON
+      - Create a Button - TextMeshPro if not present
+      - Set the text to "NEXT LEVEL"
+      - In the Button component:
+        * Add an OnClick event
+        * Drag the GameObject with GameUIManager to the object field
+        * Select GameUIManager > LoadNextLevel from the function dropdown
+        * Add "Level2" (or the appropriate level name) as a string parameter
+
+   b. MAIN MENU BUTTON
+      - Create a Button - TextMeshPro if not present
+      - Set the text to "MAIN MENU"
+      - In the Button component:
+        * Add an OnClick event
+        * Drag the GameObject with GameUIManager to the object field
+        * Select GameUIManager > ReturnToMainMenu from the function dropdown
+
+GAME OVER PANEL SETUP
+--------------------
+1. Find the GameOverPanel GameObject in the Hierarchy
+2. Make sure it has the following buttons:
+
+   a. RESTART BUTTON
+      - Create a Button - TextMeshPro if not present
+      - Set the text to "RESTART"
+      - In the Button component:
+        * Add an OnClick event
+        * Drag the GameObject with GameUIManager to the object field
+        * Select GameUIManager > RestartButton from the function dropdown
+
+   b. MAIN MENU BUTTON (FORMERLY QUIT)
+      - Find the existing Quit button or create a new Button - TextMeshPro
+      - Change the text from "QUIT" to "MAIN MENU"
+      - In the Button component:
+        * Add an OnClick event (or check the existing one)
+        * Drag the GameObject with GameUIManager to the object field
+        * Select GameUIManager > QuitGame from the function dropdown
+          (Note: This now redirects to the main menu instead of quitting the game)
+
+BUTTON STYLING
+-------------
+For visual consistency across all buttons:
+- Normal Color: #16213E
+- Highlighted Color: #0F3460
+- Pressed Color: #533483
+- Text Color: White or #E0E0E0
+- Font Size: 24-30 for standard buttons
+
+Remember to position your buttons with enough space between them, and consider adding visual effects like shadows or outlines for better visibility.
+
+Happy game developing! 

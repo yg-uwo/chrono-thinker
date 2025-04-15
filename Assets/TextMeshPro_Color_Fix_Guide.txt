@@ -1,0 +1,72 @@
+FIXING THE TEXTMESHPRO COLOR ISSUE
+===================================
+
+The issue you're experiencing with TextMeshPro text colors affecting multiple elements happens because TextMeshPro elements share material instances by default. When you change one text's color in the inspector, you're actually modifying the shared material that multiple elements use.
+
+There are three ways to fix this:
+
+OPTION 1: USE THE PROVIDED TEXTCOLORFIX SCRIPT (Recommended)
+------------------------------------------------------
+1. Add the TextColorFix script to your TimerText object:
+   - Select the TimerText GameObject in the hierarchy
+   - Click "Add Component" in the Inspector
+   - Type "TextColorFix" and select it
+   
+2. Choose your desired color in the TextColorFix component:
+   - Adjust the "Text Color" property to your preferred color
+   - The script will automatically create a unique material instance for this text element
+   
+3. Apply this script to any other text elements that need unique colors:
+   - You can customize each text element's color independently without affecting others
+
+OPTION 2: MANUALLY CREATE MATERIAL INSTANCES
+------------------------------------------
+If you prefer not to use the script approach:
+
+1. Select the TimerText GameObject in the hierarchy
+
+2. Find the Material reference in the TextMeshPro component:
+   - Look for "Material Preset" or "Font Asset" in the inspector
+   
+3. Create a material instance:
+   - Click the small gear icon next to the material field
+   - Select "Create Material Preset"
+   - This creates a unique material just for this text element
+   
+4. Name your new material something descriptive:
+   - For example, "TimerText_Material"
+   - Save it in a Materials folder
+   
+5. Now you can safely change the color of this text:
+   - Change the "Vertex Color" or "Color" property in the inspector
+   - It will only affect this specific text element
+
+OPTION 3: USE THE COLOR PROPERTY IN CODE
+--------------------------------------
+If you want to set colors programmatically:
+
+1. Modify the GameTimer script to create a material instance at runtime:
+   ```csharp
+   void Start()
+   {
+       // ... existing code ...
+       
+       // Create a unique material instance
+       if (timerText != null)
+       {
+           Material newMaterial = new Material(timerText.fontMaterial);
+           timerText.fontMaterial = newMaterial;
+           timerText.color = Color.red; // Or your desired color
+       }
+       
+       // ... rest of Start method ...
+   }
+   ```
+
+IMPORTANT NOTES
+-------------
+- Remember to clean up material instances when objects are destroyed to avoid memory leaks
+- The TextColorFix script handles this automatically
+- If you use option 2 or 3, you may need to handle cleanup yourself
+
+This issue is common in Unity projects that use TextMeshPro, and creating unique material instances is the standard solution. 

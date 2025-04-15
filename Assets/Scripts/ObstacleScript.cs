@@ -26,61 +26,32 @@ public class ObstacleScript : MonoBehaviour
         }
         
         // Make sure this object has a collider
-        if (GetComponent<Collider2D>() == null)
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider == null)
         {
             Debug.LogError("Obstacle has no Collider2D component! Add a collider for collision detection.");
         }
-    }
-    
-    // We'll implement both collision methods to ensure it works
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        HandleCollision(collision.gameObject);
+        else if (!collider.isTrigger)
+        {
+            Debug.LogWarning("Obstacle's collider is not set as a trigger. Set isTrigger to true for proper detection.");
+        }
     }
     
     void OnTriggerEnter2D(Collider2D other)
     {
-        HandleCollision(other.gameObject);
-    }
-    
-    // private void HandleCollision(GameObject collidingObject)
-    // {
-    //     // Log all collisions to help debug
-    //     Debug.Log($"Obstacle collided with: {collidingObject.name}, Tag: {collidingObject.tag}");
+        // Log all collisions to help debug
+        Debug.Log($"Obstacle collided with: {other.gameObject.name}, Tag: {other.gameObject.tag}");
         
-    //     if (collidingObject.CompareTag("Enemy") && gameTimer != null)
-    //     {
-    //         Debug.Log("Enemy hit obstacle! Reducing time by " + timeReduction + " seconds.");
-    //         gameTimer.ReduceTime(timeReduction);
+        // Check if it's an enemy by tag
+        if (other.CompareTag("Enemy") && gameTimer != null)
+        {
+            Debug.Log("Enemy hit obstacle! Reducing time by " + timeReduction + " seconds.");
+            gameTimer.ReduceTime(timeReduction);
             
-    //         // Show UI notification
-    //         if (uiManager != null)
-    //         {
-    //             uiManager.ShowTimeReduction(timeReduction);
-    //         }
-            
-    //         // You could add visual/audio feedback here
-    //         // For example, flash the obstacle briefly
-    //         StartCoroutine(FlashObstacle());
-    //     }
-    // }
-
-    private void HandleCollision(GameObject collidingObject)
-{
-    // Log all collisions to help debug
-    Debug.Log($"Obstacle collided with: {collidingObject.name}, Tag: {collidingObject.tag}");
-    
-    // Check if it's an enemy by tag rather than just the word "Enemy"
-    if (collidingObject.CompareTag("Enemy") && gameTimer != null)
-    {
-        Debug.Log("Enemy hit obstacle! Reducing time by " + timeReduction + " seconds.");
-        gameTimer.ReduceTime(timeReduction);
-        
-        // You could add visual/audio feedback here
-        // For example, flash the obstacle briefly
-        StartCoroutine(FlashObstacle());
+            // Visual feedback
+            StartCoroutine(FlashObstacle());
+        }
     }
-}
     
     private System.Collections.IEnumerator FlashObstacle()
     {

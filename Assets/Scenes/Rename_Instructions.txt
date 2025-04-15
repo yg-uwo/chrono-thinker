@@ -1,0 +1,39 @@
+INSTRUCTIONS FOR RENAMING MAINLEVEL TO LEVEL1
+============================================
+
+Follow these steps to rename your MainLevel scene to Level1:
+
+1. ENSURE UNITY IS NOT RUNNING THE SCENE
+   - Close Play mode if it's active
+   - Make sure you have saved all your changes
+
+2. RENAME THE SCENE FILE
+   - In the Project window, navigate to Assets/Scenes
+   - Right-click on "MainLevel.unity"
+   - Select "Rename"
+   - Change the name to "Level1.unity"
+   - Press Enter to confirm
+
+3. UPDATE BUILD SETTINGS
+   - Go to File > Build Settings
+   - If "MainLevel" is in the Scenes In Build list, remove it
+   - Add the newly renamed "Level1" scene
+   - Make sure the scenes are in the correct order (MainMenu as scene 0, Level1 as scene 1)
+   - Click "Apply"
+
+4. CHECK FOR REMAINING REFERENCES
+   - The MainMenuController script has been updated to reference "Level1" instead of "MainLevel"
+   - If you created any custom scripts that reference "MainLevel" directly, update them
+
+5. TEST THE GAME
+   - Play the game from the MainMenu scene
+   - Verify that clicking "Start" correctly loads Level1
+   - Make sure level transitions work if you have multiple levels
+
+6. OPTIONAL: UPDATE THE FOLDER
+   - If you also have a "MainLevel" folder in your Scenes directory, you may want to rename it
+   - Right-click on the "MainLevel" folder and select "Rename"
+   - Change it to "Level1" for consistency
+
+Note: Unity will handle updating references in the scene automatically, but manual references
+in scripts need to be updated separately (which we've done for MainMenuController). 

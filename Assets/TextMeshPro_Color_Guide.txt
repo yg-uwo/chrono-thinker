@@ -1,0 +1,52 @@
+USING THE TMP UNIQUE MATERIAL COMPONENT
+======================================
+
+This guide explains how to change the color of TextMeshPro text elements independently.
+
+PROBLEM:
+--------
+By default, TextMeshPro text elements share the same material. When you change the color of one 
+text element, it affects all other text elements using the same font.
+
+SOLUTION:
+---------
+The TMPUniqueMaterial component creates a unique material instance for each text element, 
+allowing you to set different colors for each element.
+
+USAGE:
+------
+1. Select any TextMeshPro text element in your scene
+2. Add the TMPUniqueMaterial component:
+   - Click "Add Component" in the Inspector
+   - Type "TMP Unique Material" and select it
+3. In the component settings, set your desired color
+4. Each text element with this component will now have its own independent color
+
+EXAMPLE FOR YOUR TIMER TEXT:
+---------------------------
+1. Select the TimerText GameObject in the hierarchy
+2. Add the TMPUniqueMaterial component
+3. Set the desired color (e.g., red, yellow, etc.)
+4. The timer text color will now be independent from other text elements
+
+CHANGING THE COLOR FROM SCRIPTS:
+-------------------------------
+You can also change the color through code if needed:
+
+```csharp
+// Get the component
+TMPUniqueMaterial uniqueMaterial = textObject.GetComponent<TMPUniqueMaterial>();
+
+// Set a new color
+if (uniqueMaterial != null)
+{
+    uniqueMaterial.SetTextColor(Color.red); // Or any color you want
+}
+```
+
+NOTES:
+------
+- This component should be added to each TextMeshPro element that needs a unique color
+- Each text element will use a separate material instance, which is slightly less efficient
+  but necessary for individual color control
+- Materials are properly cleaned up when objects are destroyed to prevent memory leaks 

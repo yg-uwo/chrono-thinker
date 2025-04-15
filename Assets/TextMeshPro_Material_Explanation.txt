@@ -1,0 +1,61 @@
+UNDERSTANDING TEXTMESHPRO MATERIALS
+=================================
+
+TextMeshPro's material system can be confusing because it works differently than most Unity components. 
+Here's an explanation of what you're seeing and how our solution works:
+
+WHY YOU SEE "LIBERATIONSANS SDF MATERIAL"
+----------------------------------------
+What you're seeing in the inspector is not a separate component - it's a reference to the default 
+font material that all TextMeshPro elements use. This reference appears in the inspector under the 
+TextMeshPro component as:
+
+- Font Asset: LiberationSans SDF
+- Material Preset: LiberationSans SDF Material
+
+HOW TEXTMESHPRO MATERIALS WORK
+-----------------------------
+TextMeshPro has TWO material references:
+
+1. SHARED MATERIAL (fontSharedMaterial):
+   - This is like a template that all text elements with the same font use
+   - Changes to this affect ALL text elements using this material
+   
+2. INSTANCE MATERIAL (fontMaterial):
+   - This is supposed to be a unique instance for this specific text element
+   - However, TextMeshPro may still revert to the shared material in certain situations
+
+THE ISSUE: MATERIAL PRIORITY
+---------------------------
+The reason you still see "LiberationSans SDF Material" is because:
+
+1. TextMeshPro always shows the name of the original material in the inspector
+2. If you change the color in the inspector, it modifies the shared material
+3. This affects all other text elements using the same material
+
+OUR SOLUTION: HOW TMPUniqueMaterial WORKS
+---------------------------------------
+The improved TMPUniqueMaterial script:
+
+1. Creates a completely new material instance based on the font's material
+2. Sets BOTH the shared and instance material references to our unique material
+3. Applies the color directly to both the text component AND the material
+4. Does this in both Awake() and Start() to ensure other scripts don't override it
+
+WHY THIS WORKS
+-------------
+By setting both material references, we ensure that:
+1. TextMeshPro won't revert to the shared material
+2. Color changes only affect this specific text element
+3. The material is properly isolated from other text elements
+
+WHAT YOU'LL STILL SEE IN THE INSPECTOR
+------------------------------------
+You'll still see "LiberationSans SDF Material" in the inspector because TextMeshPro 
+shows the ORIGINAL material name rather than our unique instance name.
+
+However, if you check "Debug Mode" in the TextMeshPro component, you may see the 
+actual material name which should be something like "YourObjectName_UniqueMaterial".
+
+The important thing is that the color will now work independently, even if the 
+inspector still shows the original material name. 

@@ -1,335 +1,3 @@
-// using UnityEngine;
-// using UnityEngine.UI;
-// using TMPro;
-// using UnityEngine.SceneManagement;
-
-// public class GameUIManager : MonoBehaviour
-// {
-//     [Header("UI Panels")]
-//     public GameObject gameOverPanel;
-//     public GameObject victoryPanel;
-//     public GameObject inGameUI;
-    
-//     [Header("UI Text Elements")]
-//     public TMP_Text gameOverReasonText;
-//     public TMP_Text finalTimeText;
-//     public TMP_Text victoryTimeText;  // Add this reference for the victory panel
-    
-//     [Header("Settings")]
-//     public float delayBeforeRestart = 2f;
-    
-//     // Singleton pattern for easy access
-//     public static GameUIManager Instance { get; private set; }
-
-//     private void Awake()
-//     {
-//         // Singleton setup
-//         if (Instance == null)
-//         {
-//             Instance = this;
-//         }
-//         else
-//         {
-//             Destroy(gameObject);
-//             return;
-//         }
-//     }
-    
-//     private void Start()
-//     {
-//         // Make sure all panels are hidden at start
-//         if (gameOverPanel) gameOverPanel.SetActive(false);
-//         if (victoryPanel) victoryPanel.SetActive(false);
-//         if (inGameUI) inGameUI.SetActive(true);
-//     }
-    
-//     // Call this when time runs out
-//     public void ShowTimeUpGameOver(float finalTime)
-//     {
-//         if (gameOverPanel && gameOverReasonText && finalTimeText)
-//         {
-//             gameOverReasonText.text = "Time's Up!";
-//             finalTimeText.text = FormatTime(finalTime);
-//             gameOverPanel.SetActive(true);
-            
-//             // Hide in-game UI elements
-//             if (inGameUI) inGameUI.SetActive(false);
-            
-//             // Pause all game objects
-//             PauseGameObjects();
-            
-//             // Restart level after delay
-//             Invoke("RestartLevel", delayBeforeRestart);
-//         }
-//     }
-    
-//     // Call this when player is caught by enemy
-//     public void ShowEnemyCaughtGameOver(float finalTime)
-//     {
-//         if (gameOverPanel && gameOverReasonText && finalTimeText)
-//         {
-//             gameOverReasonText.text = "Caught by Enemy!";
-//             finalTimeText.text = FormatTime(finalTime);
-//             gameOverPanel.SetActive(true);
-            
-//             // Hide in-game UI elements
-//             if (inGameUI) inGameUI.SetActive(false);
-            
-//             // Pause all game objects
-//             PauseGameObjects();
-            
-//             // Restart level after delay
-//             Invoke("RestartLevel", delayBeforeRestart);
-//         }
-//     }
-    
-//     // Call this when level is completed
-//     // public void ShowVictory(float finalTime)
-//     // {
-//     //     Debug.Log("ShowVictory called with time: " + finalTime);
-        
-//     //     if (victoryPanel)
-//     //     {
-//     //         // Find victory time text if not assigned
-//     //         if (victoryTimeText == null)
-//     //         {
-//     //             victoryTimeText = victoryPanel.GetComponentInChildren<TMP_Text>();
-//     //             if (victoryTimeText == null)
-//     //             {
-//     //                 Debug.LogError("Victory time text not found!");
-//     //             }
-//     //         }
-            
-//     //         if (victoryTimeText != null)
-//     //         {
-//     //             victoryTimeText.text = "Your Time: " + FormatTime(finalTime);
-//     //             Debug.Log("Set victory time text to: " + victoryTimeText.text);
-//     //         }
-            
-//     //         victoryPanel.SetActive(true);
-            
-//     //         // Hide in-game UI elements
-//     //         if (inGameUI) inGameUI.SetActive(false);
-            
-//     //         // Hide player and enemies
-//     //         HideGameEntities();
-//     //     }
-//     //     else
-//     //     {
-//     //         Debug.LogError("Victory panel is not assigned!");
-//     //     }
-//     // }
-
-//     // Call this when level is completed
-// public void ShowVictory(float finalTime)
-// {
-//     Debug.Log("ShowVictory called with time: " + finalTime);
-    
-//     if (victoryPanel)
-//     {
-//         // Find victory time text if not assigned
-//         if (victoryTimeText == null)
-//         {
-//             victoryTimeText = victoryPanel.GetComponentInChildren<TMP_Text>();
-//             if (victoryTimeText == null)
-//             {
-//                 Debug.LogError("Victory time text not found!");
-//             }
-//         }
-        
-//         if (victoryTimeText != null)
-//         {
-//             // For countdown timer, calculate elapsed time
-//             GameTimer gameTimer = FindObjectOfType<GameTimer>();
-//             float elapsedTime = 0f;
-            
-//             if (gameTimer != null && gameTimer.countDown)
-//             {
-//                 // Calculate elapsed time (startTime - currentTime)
-//                 elapsedTime = gameTimer.startTime - finalTime;
-//                 Debug.Log($"Calculated elapsed time: {elapsedTime} (Start time: {gameTimer.startTime} - Final time: {finalTime})");
-//                 victoryTimeText.text = "Level Complete! Time: " + FormatTime(elapsedTime);
-//             }
-//             else
-//             {
-//                 // If not countdown, use finalTime directly
-//                 victoryTimeText.text = "Level Complete! Time: " + FormatTime(finalTime);
-//             }
-            
-//             Debug.Log("Set victory time text to: " + victoryTimeText.text);
-//         }
-        
-//         victoryPanel.SetActive(true);
-        
-//         // Hide in-game UI elements
-//         if (inGameUI) inGameUI.SetActive(false);
-        
-//         // Hide player and enemies
-//         HideGameEntities();
-//     }
-//     else
-//     {
-//         Debug.LogError("Victory panel is not assigned!");
-//     }
-// }
-    
-//     // Format time as MM:SS
-//     private string FormatTime(float timeInSeconds)
-//     {
-//         int minutes = Mathf.FloorToInt(timeInSeconds / 60);
-//         int seconds = Mathf.FloorToInt(timeInSeconds % 60);
-//         return string.Format("{0:00}:{1:00}", minutes, seconds);
-//     }
-    
-//     // Show temporary notification for time reduction
-//     public void ShowTimeReduction(float amount)
-//     {
-//         // Create a temporary floating text that fades out
-//         Debug.Log($"Time reduced by {amount} seconds!");
-        
-//         // Create a temporary text notification
-//         StartCoroutine(ShowFloatingText($"-{amount}s", Color.red));
-//     }
-    
-//     private System.Collections.IEnumerator ShowFloatingText(string text, Color color)
-//     {
-//         // Create temporary text object
-//         GameObject tempTextObj = new GameObject("TempText");
-//         tempTextObj.transform.SetParent(inGameUI.transform);
-//         TMP_Text tmpText = tempTextObj.AddComponent<TextMeshProUGUI>();
-        
-//         // Set text properties
-//         tmpText.text = text;
-//         tmpText.color = color;
-//         tmpText.fontSize = 36;
-//         tmpText.alignment = TextAlignmentOptions.Center;
-        
-//         // Position near the timer
-//         if (GameObject.Find("TimerText") != null)
-//         {
-//             RectTransform timerRect = GameObject.Find("TimerText").GetComponent<RectTransform>();
-//             RectTransform textRect = tempTextObj.GetComponent<RectTransform>();
-//             textRect.position = timerRect.position + new Vector3(100, 0, 0);
-//             textRect.sizeDelta = new Vector2(200, 50);
-//         }
-        
-//         // Animate the text
-//         float duration = 1.5f;
-//         float elapsed = 0;
-        
-//         while (elapsed < duration)
-//         {
-//             elapsed += Time.deltaTime;
-//             float alpha = Mathf.Lerp(1, 0, elapsed / duration);
-//             tmpText.color = new Color(color.r, color.g, color.b, alpha);
-            
-//             // Move upward slightly
-//             tempTextObj.transform.position += new Vector3(0, 30 * Time.deltaTime, 0);
-            
-//             yield return null;
-//         }
-        
-//         // Destroy the text object
-//         Destroy(tempTextObj);
-//     }
-    
-//     private void RestartLevel()
-//     {
-//         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-//     }
-    
-//     // For next level button in victory panel
-//     public void LoadNextLevel(string levelName)
-//     {
-//         SceneManager.LoadScene(levelName);
-//     }
-
-//      public void ShowGameOverPanel()
-//     {
-//         if (gameOverPanel != null)
-//         {
-//             gameOverPanel.SetActive(true);
-//         }
-//         else
-//         {
-//             Debug.LogError("GameOverPanel is not assigned in the Inspector!");
-//         }
-//     }
-    
-//     public void RestartGame()
-//     {
-//         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-//     }
-
-//     // For restart button in game over panel
-//     public void RestartButton()
-//     {
-//         RestartLevel();
-//     }
-//     // For quit button
-//     public void QuitGame()
-//     {
-//         #if UNITY_EDITOR
-//         UnityEditor.EditorApplication.isPlaying = false;
-//         #else
-//         Application.Quit();
-//         #endif
-//     }
-    
-//     // Pause all moving entities
-//     private void PauseGameObjects()
-//     {
-//         // Disable all enemies
-//         foreach (EnemyAI enemy in FindObjectsOfType<EnemyAI>())
-//         {
-//             enemy.enabled = false;
-//         }
-        
-//         // Disable player
-//         SimplePlayerMovement player = FindObjectOfType<SimplePlayerMovement>();
-//         if (player != null)
-//         {
-//             player.enabled = false;
-//         }
-//     }
-    
-//     // Hide player and enemies when victory
-//     private void HideGameEntities()
-//     {
-//         Debug.Log("Hiding player and enemies");
-        
-//         // Hide all enemies
-//         foreach (EnemyAI enemy in FindObjectsOfType<EnemyAI>())
-//         {
-//             // Option 1: Disable renderers
-//             SpriteRenderer enemyRenderer = enemy.GetComponent<SpriteRenderer>();
-//             if (enemyRenderer != null)
-//             {
-//                 enemyRenderer.enabled = false;
-//             }
-            
-//             // Option 2: Hide entire game object
-//             enemy.gameObject.SetActive(false);
-//         }
-        
-//         // Hide player
-//         SimplePlayerMovement player = FindObjectOfType<SimplePlayerMovement>();
-//         if (player != null)
-//         {
-//             // Option 1: Disable renderer
-//             SpriteRenderer playerRenderer = player.GetComponent<SpriteRenderer>();
-//             if (playerRenderer != null)
-//             {
-//                 playerRenderer.enabled = false;
-//             }
-            
-//             // Option 2: Hide entire game object
-//             player.gameObject.SetActive(false);
-//         }
-//     }
-// }
-
-
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -349,6 +17,13 @@ public class GameUIManager : MonoBehaviour
     
     [Header("Settings")]
     public float delayBeforeRestart = 2f;
+    
+    [Header("References")]
+    [SerializeField] private GameTimer gameTimer;
+    [SerializeField] private PlayerMovement playerMovement;
+    
+    [Header("UI Elements")]
+    public Button nextLevelButton;  // Reference to the Next Level button
     
     // Singleton pattern for easy access
     public static GameUIManager Instance { get; private set; }
@@ -373,6 +48,13 @@ public class GameUIManager : MonoBehaviour
         if (gameOverPanel) gameOverPanel.SetActive(false);
         if (victoryPanel) victoryPanel.SetActive(false);
         if (inGameUI) inGameUI.SetActive(true);
+        
+        // Find references if not set in inspector
+        if (gameTimer == null)
+            gameTimer = FindObjectOfType<GameTimer>();
+            
+        if (playerMovement == null)
+            playerMovement = FindObjectOfType<PlayerMovement>();
     }
     
     // Call this when time runs out
@@ -389,6 +71,9 @@ public class GameUIManager : MonoBehaviour
             
             // Pause all game objects
             PauseGameObjects();
+            
+            // Restart level after delay
+            Invoke("RestartLevel", delayBeforeRestart);
         }
     }
     
@@ -406,6 +91,9 @@ public class GameUIManager : MonoBehaviour
             
             // Pause all game objects
             PauseGameObjects();
+            
+            // Restart level after delay
+            Invoke("RestartLevel", delayBeforeRestart);
         }
     }
     
@@ -429,13 +117,10 @@ public class GameUIManager : MonoBehaviour
             if (victoryTimeText != null)
             {
                 // For countdown timer, calculate elapsed time
-                GameTimer gameTimer = FindObjectOfType<GameTimer>();
-                float elapsedTime = 0f;
-                
                 if (gameTimer != null && gameTimer.countDown)
                 {
                     // Calculate elapsed time (startTime - currentTime)
-                    elapsedTime = gameTimer.startTime - finalTime;
+                    float elapsedTime = gameTimer.startTime - finalTime;
                     Debug.Log($"Calculated elapsed time: {elapsedTime} (Start time: {gameTimer.startTime} - Final time: {finalTime})");
                     victoryTimeText.text = "Level Complete! Time: " + FormatTime(elapsedTime);
                 }
@@ -448,6 +133,10 @@ public class GameUIManager : MonoBehaviour
                 Debug.Log("Set victory time text to: " + victoryTimeText.text);
             }
             
+            // Configure the next level button
+            ConfigureNextLevelButton();
+            
+            // Show the victory panel with its buttons (Next Level and Main Menu)
             victoryPanel.SetActive(true);
             
             // Hide in-game UI elements
@@ -459,6 +148,66 @@ public class GameUIManager : MonoBehaviour
         else
         {
             Debug.LogError("Victory panel is not assigned!");
+        }
+    }
+    
+    // Configure the Next Level button based on the current level
+    private void ConfigureNextLevelButton()
+    {
+        if (nextLevelButton == null)
+        {
+            Debug.LogWarning("Next Level button not assigned in the inspector!");
+            return;
+        }
+        
+        // Find the GoalTrigger to get the next level information
+        GoalTrigger goalTrigger = FindObjectOfType<GoalTrigger>();
+        if (goalTrigger != null)
+        {
+            // Clear existing listeners
+            nextLevelButton.onClick.RemoveAllListeners();
+            
+            // If this is the final level, button should loop back to the same level or main menu
+            if (goalTrigger.isFinalLevel)
+            {
+                // Option 1: Return to main menu
+                nextLevelButton.onClick.AddListener(ReturnToMainMenu);
+                
+                // Change the button text if we can find it
+                TextMeshProUGUI buttonText = nextLevelButton.GetComponentInChildren<TextMeshProUGUI>();
+                if (buttonText != null)
+                {
+                    buttonText.text = "Main Menu";
+                }
+                
+                Debug.Log("Final level - Next Level button will return to main menu");
+            }
+            else
+            {
+                // Set button to load the next level
+                string nextLevel = goalTrigger.nextLevelName;
+                nextLevelButton.onClick.AddListener(() => LoadNextLevel(nextLevel));
+                Debug.Log($"Next Level button will load {nextLevel}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("GoalTrigger not found - using default next level button behavior");
+            
+            // Default: just go to the next scene in build settings
+            nextLevelButton.onClick.AddListener(() => {
+                int currentIndex = SceneManager.GetActiveScene().buildIndex;
+                int nextIndex = currentIndex + 1;
+                if (nextIndex < SceneManager.sceneCountInBuildSettings)
+                {
+                    SceneManager.LoadScene(nextIndex);
+                }
+                else
+                {
+                    // If no more scenes, go back to main menu
+                    SceneManager.LoadScene("MainMenu");
+                }
+            });
         }
     }
     
@@ -522,29 +271,47 @@ public class GameUIManager : MonoBehaviour
         Destroy(tempTextObj);
     }
     
-    // General game over panel display that takes reason and time
+    private void RestartLevel()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+    
+    // For next level button in victory panel
+    public void LoadNextLevel(string levelName)
+    {
+        SceneManager.LoadScene(levelName);
+    }
+    
+    // For returning to main menu from any panel
+    public void ReturnToMainMenu()
+    {
+        // Load the main menu scene
+        SceneManager.LoadScene("MainMenu");
+    }
+
     public void ShowGameOverPanel(string reason = "Game Over!", float finalTime = 0f)
     {
         if (gameOverPanel != null)
         {
-            // Set reason text if available
+            // Set the reason text
             if (gameOverReasonText != null)
             {
                 gameOverReasonText.text = reason;
             }
             
-            // Set final time if available
+            // Set the time text
             if (finalTimeText != null)
             {
                 finalTimeText.text = FormatTime(finalTime);
             }
             
+            // Show the panel
             gameOverPanel.SetActive(true);
             
             // Hide in-game UI
             if (inGameUI) inGameUI.SetActive(false);
             
-            // Pause all game objects
+            // Pause game objects
             PauseGameObjects();
         }
         else
@@ -553,22 +320,22 @@ public class GameUIManager : MonoBehaviour
         }
     }
     
-    // Button callback for Restart button
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    // For restart button in game over panel
     public void RestartButton()
     {
-        Debug.Log("Restart button clicked!");
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        RestartLevel();
     }
     
-    // Button callback for Quit button
+    // For quit button - now returns to main menu
     public void QuitGame()
     {
-        Debug.Log("Quit button clicked!");
-        #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-        #else
-        Application.Quit();
-        #endif
+        // Use our dedicated method to return to the main menu
+        ReturnToMainMenu();
     }
     
     // Pause all moving entities
@@ -581,7 +348,7 @@ public class GameUIManager : MonoBehaviour
         }
         
         // Disable player
-        SimplePlayerMovement player = FindObjectOfType<SimplePlayerMovement>();
+        PlayerMovement player = FindObjectOfType<PlayerMovement>();
         if (player != null)
         {
             player.enabled = false;
@@ -608,7 +375,7 @@ public class GameUIManager : MonoBehaviour
         }
         
         // Hide player
-        SimplePlayerMovement player = FindObjectOfType<SimplePlayerMovement>();
+        PlayerMovement player = FindObjectOfType<PlayerMovement>();
         if (player != null)
         {
             // Option 1: Disable renderer

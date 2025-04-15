@@ -1,0 +1,83 @@
+CHRONO-THINKER MAIN MENU SETUP GUIDE
+===============================
+
+Follow these steps to set up the Main Menu scene in Unity:
+
+1. CREATE THE SCENE
+   - In Unity's Project window, right-click in the Scenes folder
+   - Select Create > Scene
+   - Name it "MainMenu"
+
+2. SET UP THE CANVAS
+   - In the Hierarchy, right-click and select UI > Canvas
+   - This will create a Canvas with an EventSystem
+   - In Canvas properties, set:
+     * Render Mode: Screen Space - Overlay
+     * UI Scale Mode: Scale With Screen Size
+     * Reference Resolution: 1920 x 1080
+     * Screen Match Mode: Match Width or Height
+     * Match: 0.5 (blend of width and height)
+
+3. CREATE THE BACKGROUND
+   - Right-click on Canvas and select UI > Image
+   - Rename to "Background"
+   - Set color to a dark color (e.g., #1A1A2E)
+   - Set Rect Transform to stretch in all directions (anchor to all corners)
+
+4. CREATE THE TITLE
+   - Right-click on Canvas and select UI > Text - TextMeshPro
+   - If prompted to import TMP Essentials, click "Import TMP Essentials"
+   - Rename to "TitleText"
+   - Set the Text to "CHRONO-THINKER"
+   - Set Font Size to 72
+   - Set Font Style to Bold
+   - Set Font Color to a bright color (e.g., #00A8CC)
+   - Set Alignment to Center
+   - Position at the top part of the screen
+   - Add a Shadow or Outline component for better visibility
+
+5. CREATE THE START BUTTON
+   - Right-click on Canvas and select UI > Button - TextMeshPro
+   - Rename to "StartButton"
+   - Set the Button text to "PRESS TO START"
+   - Style the button:
+     * Normal Color: #16213E
+     * Highlighted Color: #0F3460
+     * Pressed Color: #533483
+   - Position below the title
+   - Add a subtle animation if desired (can be done via Animation window)
+
+6. CREATE THE QUIT BUTTON (Optional)
+   - Right-click on Canvas and select UI > Button - TextMeshPro
+   - Rename to "QuitButton"
+   - Set the Button text to "QUIT"
+   - Style similar to Start Button but smaller
+   - Position below the Start Button
+
+7. ADD THE CONTROLLER SCRIPT
+   - Create an empty GameObject and name it "MenuController"
+   - Add the MainMenuController script to it
+   - Assign the references:
+     * Start Button: drag the StartButton from Hierarchy
+     * Quit Button: drag the QuitButton from Hierarchy
+     * Title Text: drag the TitleText from Hierarchy
+     * Main Panel: drag the Canvas from Hierarchy
+
+8. ADD THE TRANSITION MANAGER
+   - Create an empty GameObject and name it "SceneTransitionManager"
+   - Add the SceneTransitionManager script to it
+
+9. SET UP BUILD SETTINGS
+   - Go to File > Build Settings
+   - Add both MainMenu and Level1 scenes
+   - Ensure MainMenu is set as the first scene (index 0)
+   - Click "Apply"
+
+10. RENAME MAINLEVEL TO LEVEL1
+   - In the Project window, right-click on "MainLevel.unity" 
+   - Select "Rename"
+   - Change the name to "Level1.unity"
+   - Unity will automatically update references in the scene
+
+Your main menu is now ready! When you play the game, the MainMenu scene will load first,
+allowing the player to start the game by clicking the button or pressing space/enter. 

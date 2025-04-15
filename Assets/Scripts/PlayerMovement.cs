@@ -1,7 +1,8 @@
 using UnityEngine;
 
-public class SimplePlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
+    // These public fields will be shown in inspector but will use GameSettings values by default
     public float moveSpeed = 5f;
     
     // Define your level boundaries
@@ -39,7 +40,7 @@ public class SimplePlayerMovement : MonoBehaviour
             Debug.LogWarning("BoxCollider2D not found on player!");
         }
         
-        Debug.Log("SimplePlayerMovement started. Collider extents: " + colliderExtents);
+        Debug.Log("PlayerMovement started. Collider extents: " + colliderExtents);
     }
     
     void Update()

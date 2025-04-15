@@ -1,0 +1,88 @@
+VICTORY UI SETUP GUIDE
+=====================
+
+This guide will help you properly set up the victory panel with working buttons in your game.
+
+STEP 1: UPDATE THE VICTORY PANEL
+-----------------------------
+1. Open your Level1 scene
+
+2. Find the Victory Panel in the hierarchy:
+   - This is likely under a Canvas object
+   - If you don't have one, create a Panel GameObject under your Canvas and name it "VictoryPanel"
+
+3. Make sure the Victory Panel has:
+   - A Text element showing "Level Complete" and the time
+   - A "Next Level" button
+   - Optionally, a "Main Menu" button
+
+4. For the Next Level button:
+   - Add a Button component if it doesn't have one
+   - Set its text to "NEXT LEVEL"
+   - Make sure it has a TextMeshPro - Text component for its label
+   - Style it to match your game's look
+
+STEP 2: CONNECT THE GAMEUI MANAGER
+-------------------------------
+1. Find the GameObject with the GameUIManager script attached
+
+2. In the Inspector:
+   - Find the "Next Level Button" field in the GameUIManager component
+   - Drag your Next Level button from the hierarchy to this field
+   - Drag the Victory Panel to the "Victory Panel" field if it's not already set
+
+3. Make sure these other references are set:
+   - Victory Time Text: The TextMeshPro element showing the completion time
+   - Main Panel: Your Canvas or main UI container
+   - Game Timer: Reference to your GameTimer object
+
+STEP 3: MODIFY THE GOAL TRIGGER
+----------------------------
+The GoalTrigger has been updated to use the UI button instead of automatically loading the next level.
+
+1. Find the GameObject with the GoalTrigger script
+   
+2. In the Inspector, ensure these fields are set:
+   - Next Level Name: "Level2" (for Level1) or appropriate level name
+   - Is Final Level: Unchecked for Level1, checked for Level2 (or your final level)
+   - Victory Panel: Reference to your victory panel (if used)
+
+STEP 4: TEST THE LEVEL PROGRESSION
+-------------------------------
+1. Play the game from Level1
+
+2. Complete the level (reach the goal)
+
+3. The Victory Panel should appear with:
+   - Your level completion time
+   - A "Next Level" button
+   - (Optional) A "Main Menu" button
+
+4. Click the "Next Level" button - it should load Level2
+   - In the final level, it will say "Main Menu" and return to the main menu
+
+TROUBLESHOOTING
+--------------
+If the Next Level button doesn't work:
+
+1. Check the Console for error messages
+
+2. Verify that the button is properly referenced in the GameUIManager
+
+3. Make sure the GoalTrigger has the correct "Next Level Name" set
+
+4. Check that the button has the correct OnClick events (these should be set automatically)
+
+5. Ensure all scenes are added to the Build Settings in the correct order
+
+CUSTOMIZATION
+-----------
+You can customize the appearance and behavior of the victory UI:
+
+- Change button colors and text styles
+- Add animations or effects
+- Add additional information like score or stats
+- Include sound effects for victory
+
+The victory panel will now wait for the player to click the Next Level button,
+giving them time to read the completion message and prepare for the next level. 

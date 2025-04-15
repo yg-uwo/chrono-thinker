@@ -1,0 +1,96 @@
+SETTING UP LEVELS WITH THE LEVELMANAGER
+=====================================
+
+The LevelManager is a unified tool that automatically configures each level with the correct settings.
+Follow these steps to set up both Level1 and the new Level2.
+
+PART 1: SET UP LEVEL1
+--------------------
+
+1. Open the Level1 scene
+
+2. Create a new empty GameObject:
+   - Right-click in the Hierarchy and select Create Empty
+   - Name it "LevelManager"
+
+3. Add the LevelManager component:
+   - With the LevelManager GameObject selected, click "Add Component" in the Inspector
+   - Type "Level Manager" and select it
+
+4. The LevelManager will automatically:
+   - Detect it's in Level1
+   - Set the timer to 60 seconds
+   - Configure the GoalTrigger to point to Level2
+   - Set isFinalLevel to false
+
+5. If you want to override any settings:
+   - Directly edit the values in the LevelManager component
+   - Click the "Apply Level Settings" button to apply your changes
+
+PART 2: CREATE AND SET UP LEVEL2
+------------------------------
+
+1. Duplicate Level1:
+   - In the Project window, right-click on Level1.unity
+   - Select "Duplicate"
+   - Rename the new scene to "Level2.unity"
+
+2. Open the Level2 scene
+
+3. Find the LevelManager GameObject:
+   - It was copied from Level1, so it should already be in the scene
+   - Select it in the Hierarchy
+
+4. Update the LevelManager:
+   - Click the "Get Current Scene Name" button in the Inspector to update the level name
+   - The LevelManager will automatically apply Level2 presets:
+     * Timer: 45 seconds
+     * Next Level: Level3 (or configured as final level)
+     * Is Final Level: true (unless you're creating more levels)
+
+5. Click "Apply Level Settings" to ensure changes take effect
+
+PART 3: ADD LEVEL2 TO BUILD SETTINGS
+----------------------------------
+
+1. Go to File > Build Settings
+
+2. Add Level2 to the Scenes In Build list:
+   - Drag Level2.unity from the Project window to the Scenes list
+   - Ensure the order is: MainMenu (0), Level1 (1), Level2 (2)
+
+3. Click "Apply"
+
+PART 4: TESTING YOUR LEVELS
+-------------------------
+
+1. Play the game from the MainMenu scene
+
+2. Test the following:
+   - Level1 should start with a 60-second timer
+   - Completing Level1 should load Level2
+   - Level2 should start with a 45-second timer
+   - Completing Level2 should either end the game or load Level3 if you create it
+
+CUSTOMIZING LEVEL SETTINGS
+------------------------
+
+The LevelManager comes with preset configurations, but you can easily override them:
+
+- Timer Duration: Change the "Timer Duration" value in the LevelManager
+- Next Level: Set the "Next Level Name" to the scene you want to load
+- Final Level: Toggle "Is Final Level" if this is the last level
+
+After changing any setting, click "Apply Level Settings" to update your level.
+
+CREATING ADDITIONAL LEVELS
+------------------------
+
+To add more levels (e.g., Level3), follow the same process:
+
+1. Duplicate Level2 and rename to Level3
+2. Update the LevelManager with "Get Current Scene Name"
+3. Customize settings as needed
+4. Add to Build Settings
+
+You can also update the LevelManager.cs script to add presets for new levels in the ApplyLevelPresets() method. 
