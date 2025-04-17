@@ -1,0 +1,67 @@
+Punching Bag Mechanic Setup Guide
+==============================
+
+This guide will help you set up the punching bag mechanic in your game. Follow these steps to implement the feature.
+
+1. ENEMY HEALTH SETUP
+---------------------
+- Add the EnemyHealth component to all enemy prefabs
+- Create a health bar prefab:
+  a. Create a new UI Canvas (World Space)
+  b. Add a Slider object to the canvas
+  c. Configure the Slider with a fill image (red color recommended)
+  d. Set the RectTransform to a small size (e.g., 80x10 pixels)
+  e. Make sure the Slider has Min Value = 0 and Max Value = 1
+  f. Create a prefab from this Slider
+- Assign the health bar prefab to the EnemyHealth component
+
+2. PUNCHING BAG SETUP
+---------------------
+- Create a new GameObject for the punching bag:
+  a. Use the "PunchingBagWithAnchor" prefab in the Prefabs folder
+  - OR -
+  b. Follow these manual steps if needed:
+     1. Create a parent GameObject "PunchingBagWithAnchor"
+     2. Add an Anchor child ("PunchingBag_Anchor") with a Static Rigidbody2D
+     3. Add a PunchingBag child with:
+        - SpriteRenderer (with appropriate sprite)
+        - CircleCollider2D or BoxCollider2D (NOT a trigger)
+        - Rigidbody2D (Kinematic, no gravity)
+        - PunchingBag script component
+     4. Set the PunchingBag script's anchorPoint to reference the Anchor transform
+- Make sure the punching bag GameObject is on the "Punchable" layer
+- IMPORTANT: The PunchingBag now:
+  - Only moves when punched
+  - Will recoil past its anchor when hit
+  - Properly applies damage and knockback to enemies
+  - Ignores physical collisions with players and enemies
+
+3. PLAYER AIMING SETUP
+---------------------
+- Add the PlayerPunching component to the Player GameObject
+- Configure the punchableLayer in PlayerPunching to include the "Punchable" layer
+- By default, the player can:
+  - Quick punch with left mouse button
+  - Charge a stronger punch with right mouse button
+
+4. PUNCHABLE LAYER SETUP
+------------------------
+- Create a new Layer called "Punchable" in Edit > Project Settings > Tags and Layers
+- Set the punching bag GameObject to use this layer
+- Configure the Player's PlayerPunching component to use this layer mask
+
+5. TESTING THE MECHANIC
+-----------------------
+- Place punching bags in your level
+- Ensure enemies are properly tagged as "Enemy"
+- Test the following behaviors:
+  - Punching bag only moves when hit
+  - Punching bag recoils past anchor when hit
+  - Punching bag applies damage and knockback to enemies
+  - Punching bag doesn't physically interact with players or enemies
+  
+If you encounter any issues, check that:
+1. The PunchingBag script is properly attached and configured
+2. The anchor point is correctly set
+3. The layer assignments are correct
+4. All required colliders are present and NOT triggers 

@@ -72,8 +72,7 @@ public class GameUIManager : MonoBehaviour
             // Pause all game objects
             PauseGameObjects();
             
-            // Restart level after delay
-            Invoke("RestartLevel", delayBeforeRestart);
+            // No automatic restart - wait for user to press restart button
         }
     }
     
@@ -92,8 +91,7 @@ public class GameUIManager : MonoBehaviour
             // Pause all game objects
             PauseGameObjects();
             
-            // Restart level after delay
-            Invoke("RestartLevel", delayBeforeRestart);
+            // No automatic restart - wait for user to press restart button
         }
     }
     
@@ -353,6 +351,13 @@ public class GameUIManager : MonoBehaviour
         {
             player.enabled = false;
         }
+        
+        // Disable player aiming
+        PlayerPunching playerPunching = FindObjectOfType<PlayerPunching>();
+        if (playerPunching != null && playerPunching.aimIndicator != null)
+        {
+            playerPunching.aimIndicator.SetActive(false);
+        }
     }
     
     // Hide player and enemies when victory
@@ -387,6 +392,13 @@ public class GameUIManager : MonoBehaviour
             
             // Option 2: Hide entire game object
             player.gameObject.SetActive(false);
+        }
+        
+        // Disable player aiming
+        PlayerPunching playerPunching = FindObjectOfType<PlayerPunching>();
+        if (playerPunching != null && playerPunching.aimIndicator != null)
+        {
+            playerPunching.aimIndicator.SetActive(false);
         }
     }
 }
