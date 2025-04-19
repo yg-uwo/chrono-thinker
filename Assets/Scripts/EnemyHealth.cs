@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
+using TMPro;
 
 public class EnemyHealth : MonoBehaviour
 {
@@ -179,6 +181,9 @@ public class EnemyHealth : MonoBehaviour
         // Update the health bar immediately
         UpdateHealthBar();
         
+        // Show damage indicator
+        ShowDamageIndicator(damage);
+        
         if (currentHealth <= 0)
         {
             Die();
@@ -257,6 +262,63 @@ public class EnemyHealth : MonoBehaviour
                 parent = parent.parent;
             }
         }
+    }
+    
+    private void ShowDamageIndicator(float damage)
+    {
+        // Skip if damage is zero
+        if (damage <= 0)
+            return;
+            
+        // Get position above the enemy, but closer to them
+        // Using a much smaller offset than before
+        Vector3 indicatorPosition = transform.position + new Vector3(0, 0.5f, 0);
+        
+        // Create a new game object for the indicator
+        GameObject indicatorObj = new GameObject("DamageIndicator_" + damage);
+        indicatorObj.transform.position = indicatorPosition;
+        
+        // Add TextMeshPro component for the text
+        TextMeshPro textMesh = indicatorObj.AddComponent<TextMeshPro>();
+        textMesh.text = damage.ToString();
+        textMesh.fontSize = 3f; // Smaller font size
+        textMesh.alignment = TextAlignmentOptions.Center;
+        textMesh.color = Color.red; // Red for enemy damage
+        
+        // Add bold style for better visibility
+        textMesh.fontStyle = FontStyles.Bold;
+        
+        // Add the DamageIndicator behavior
+        DamageIndicator indicator = indicatorObj.AddComponent<DamageIndicator>();
+        indicator.fadeTime = 1f;
+        indicator.moveDistance = 1f;
+        indicator.textColor = Color.red;
+        
+        // Setup the indicator
+        indicator.Setup(damage);
+        
+        Debug.Log($"Enemy: Created damage indicator showing {damage} at {indicatorPosition}");
+    }
+    
+    // Create a damage indicator prefab programmatically
+    private GameObject CreateDamageIndicatorPrefab()
+    {
+        GameObject indicatorObj = new GameObject("DamageIndicator");
+        
+        // Add TextMeshPro component
+        TMPro.TextMeshPro textMesh = indicatorObj.AddComponent<TMPro.TextMeshPro>();
+        textMesh.alignment = TMPro.TextAlignmentOptions.Center;
+        textMesh.fontSize = 4;
+        textMesh.color = Color.red;
+        textMesh.text = "0";
+        
+        // Add DamageIndicator component
+        DamageIndicator indicator = indicatorObj.AddComponent<DamageIndicator>();
+        indicator.fadeTime = 1f;
+        indicator.moveDistance = 1f;
+        indicator.textColor = Color.red;
+        
+        return indicatorObj;
     }
     
     private void Die()

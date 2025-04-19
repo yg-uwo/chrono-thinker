@@ -1,6 +1,8 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.UI;
+using System.Linq;
+using TMPro;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -27,11 +29,55 @@ public class PlayerHealth : MonoBehaviour
 
         // Start the damage flash effect
         StartCoroutine(FlashDamage());
+        
+        // Show damage indicator
+        ShowDamageIndicator(amount);
 
         if (currentHealth <= 0)
         {
             Die();
         }
+    }
+    
+    // Show damage indicator near player
+    private void ShowDamageIndicator(float damage)
+    {
+        // Skip if damage is zero
+        if (damage <= 0)
+            return;
+            
+        // Position directly above the player, but closer (reduced y offset)
+        Vector3 indicatorPosition = transform.position + new Vector3(0, 0.7f, 0);
+        
+        // Create a new game object for the indicator
+        GameObject indicatorObj = new GameObject("DamageIndicator_" + damage);
+        indicatorObj.transform.position = indicatorPosition;
+        
+        // Add TextMeshPro component for the text
+        TextMeshPro textMesh = indicatorObj.AddComponent<TextMeshPro>();
+        textMesh.text = damage.ToString();
+        textMesh.fontSize = 3f; // Smaller font size
+        textMesh.alignment = TextAlignmentOptions.Center;
+        
+        // Define a bright orange color for player damage
+        Color playerDamageColor = new Color(1f, 0.5f, 0f); // Bright orange
+        
+        // Set initial text color
+        textMesh.color = playerDamageColor;
+        
+        // Add bold style for better visibility
+        textMesh.fontStyle = FontStyles.Bold;
+        
+        // Add the DamageIndicator behavior
+        DamageIndicator indicator = indicatorObj.AddComponent<DamageIndicator>();
+        indicator.fadeTime = 1f;
+        indicator.moveDistance = 1f;
+        indicator.textColor = playerDamageColor;
+        
+        // Setup the indicator
+        indicator.Setup(damage);
+        
+        Debug.Log($"Player: Created damage indicator showing {damage} at {indicatorPosition}");
     }
 
     // Update the health bar UI based on current health
@@ -50,16 +96,24 @@ public class PlayerHealth : MonoBehaviour
 
     private void Die()
     {
-        // Example: Trigger game over via your UIManager
+        // Trigger game over via your UIManager
         if (GameUIManager.Instance != null)
         {
             // Here you can choose to pass a final time or any other metric
             GameUIManager.Instance.ShowGameOverPanel("You Died!", 0f);
+            
+            // GameUIManager will handle hiding the player and enemies
         }
         else
         {
             Debug.LogError("UI Manager Instance not found!");
+            
+            // Fallback - hide this object if UI manager isn't available
+            gameObject.SetActive(false);
         }
+        
+        // Stop any in-progress animations or effects
+        StopAllCoroutines();
     }
 
     private IEnumerator FlashDamage()
@@ -72,6 +126,12 @@ public class PlayerHealth : MonoBehaviour
             yield return new WaitForSeconds(0.1f); // Adjust duration as needed
             sr.color = originalColor;
         }
+    }
+
+    // Public method to check if player is dead
+    public bool IsDead()
+    {
+        return currentHealth <= 0;
     }
 }
 

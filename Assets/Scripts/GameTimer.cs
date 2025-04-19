@@ -137,4 +137,10 @@ public class GameTimer : MonoBehaviour
     {
         return currentTime;
     }
+    
+    // Public method to check if game is over due to time running out
+    public bool IsGameOver()
+    {
+        return isGameOver;
+    }
 }

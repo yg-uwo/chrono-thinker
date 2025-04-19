@@ -227,6 +227,15 @@ public class GameUIManager : MonoBehaviour
         StartCoroutine(ShowFloatingText($"-{amount}s", Color.red));
     }
     
+    // Show temporary notification with a custom message
+    public void ShowMessage(string message)
+    {
+        Debug.Log($"Showing message: {message}");
+        
+        // Create a temporary text notification
+        StartCoroutine(ShowFloatingText(message, Color.yellow));
+    }
+    
     private System.Collections.IEnumerator ShowFloatingText(string text, Color color)
     {
         // Create temporary text object
@@ -336,61 +345,27 @@ public class GameUIManager : MonoBehaviour
         ReturnToMainMenu();
     }
     
-    // Pause all moving entities
+    // Pause all moving entities and hide them
     private void PauseGameObjects()
     {
-        // Disable all enemies
+        Debug.Log("Pausing and hiding game entities");
+        
+        // Disable and hide all enemies
         foreach (EnemyAI enemy in FindObjectsOfType<EnemyAI>())
         {
             enemy.enabled = false;
+            
+            // Hide by disabling the GameObject
+            enemy.gameObject.SetActive(false);
         }
         
-        // Disable player
+        // Disable and hide player
         PlayerMovement player = FindObjectOfType<PlayerMovement>();
         if (player != null)
         {
             player.enabled = false;
-        }
-        
-        // Disable player aiming
-        PlayerPunching playerPunching = FindObjectOfType<PlayerPunching>();
-        if (playerPunching != null && playerPunching.aimIndicator != null)
-        {
-            playerPunching.aimIndicator.SetActive(false);
-        }
-    }
-    
-    // Hide player and enemies when victory
-    private void HideGameEntities()
-    {
-        Debug.Log("Hiding player and enemies");
-        
-        // Hide all enemies
-        foreach (EnemyAI enemy in FindObjectsOfType<EnemyAI>())
-        {
-            // Option 1: Disable renderers
-            SpriteRenderer enemyRenderer = enemy.GetComponent<SpriteRenderer>();
-            if (enemyRenderer != null)
-            {
-                enemyRenderer.enabled = false;
-            }
             
-            // Option 2: Hide entire game object
-            enemy.gameObject.SetActive(false);
-        }
-        
-        // Hide player
-        PlayerMovement player = FindObjectOfType<PlayerMovement>();
-        if (player != null)
-        {
-            // Option 1: Disable renderer
-            SpriteRenderer playerRenderer = player.GetComponent<SpriteRenderer>();
-            if (playerRenderer != null)
-            {
-                playerRenderer.enabled = false;
-            }
-            
-            // Option 2: Hide entire game object
+            // Hide player by disabling the GameObject
             player.gameObject.SetActive(false);
         }
         
@@ -399,6 +374,119 @@ public class GameUIManager : MonoBehaviour
         if (playerPunching != null && playerPunching.aimIndicator != null)
         {
             playerPunching.aimIndicator.SetActive(false);
+            
+            // Also hide the punching bag
+            PunchingBag[] punchingBags = FindObjectsOfType<PunchingBag>();
+            foreach (PunchingBag bag in punchingBags)
+            {
+                bag.gameObject.SetActive(false);
+            }
+        }
+        
+        // Destroy all enemy health bars
+        DestroyAllEnemyHealthBars();
+        
+        // Destroy any damage indicators that might be visible
+        DestroyAllDamageIndicators();
+    }
+    
+    // Hide player and enemies when victory
+    private void HideGameEntities()
+    {
+        Debug.Log("Hiding game entities for victory");
+        
+        // Hide all enemies
+        foreach (EnemyAI enemy in FindObjectsOfType<EnemyAI>())
+        {
+            // Option 2: Hide entire game object
+            enemy.gameObject.SetActive(false);
+        }
+        
+        // Hide player
+        PlayerMovement player = FindObjectOfType<PlayerMovement>();
+        if (player != null)
+        {
+            // Hide entire game object
+            player.gameObject.SetActive(false);
+        }
+        
+        // Disable player aiming
+        PlayerPunching playerPunching = FindObjectOfType<PlayerPunching>();
+        if (playerPunching != null)
+        {
+            if (playerPunching.aimIndicator != null)
+            {
+                playerPunching.aimIndicator.SetActive(false);
+            }
+            
+            // Also hide punching bags
+            PunchingBag[] punchingBags = FindObjectsOfType<PunchingBag>();
+            foreach (PunchingBag bag in punchingBags)
+            {
+                bag.gameObject.SetActive(false);
+            }
+        }
+        
+        // Destroy all enemy health bars that might still be active
+        DestroyAllEnemyHealthBars();
+        
+        // Clean up damage indicators
+        DestroyAllDamageIndicators();
+    }
+    
+    // New method to find and destroy all enemy health bars
+    private void DestroyAllEnemyHealthBars()
+    {
+        Debug.Log("Removing all enemy health bars");
+        
+        // Find world canvas and destroy all child health bars
+        Canvas worldCanvas = FindObjectOfType<Canvas>();
+        if (worldCanvas != null && worldCanvas.renderMode == RenderMode.WorldSpace && worldCanvas.name == "WorldSpaceCanvas")
+        {
+            // Look for all sliders under the canvas (health bars)
+            Slider[] healthBars = worldCanvas.GetComponentsInChildren<Slider>(true);
+            foreach (Slider healthBar in healthBars)
+            {
+                // Check if this is likely an enemy health bar
+                if (healthBar.gameObject.name.Contains("HealthBar") || 
+                    (healthBar.transform.parent != null && healthBar.transform.parent.name.Contains("HealthBar")))
+                {
+                    Debug.Log($"Destroying health bar: {healthBar.gameObject.name}");
+                    Destroy(healthBar.gameObject);
+                }
+            }
+        }
+        
+        // Alternative approach - find any GameObject with EnemyHealthBar in its name
+        GameObject[] healthBarObjects = GameObject.FindObjectsOfType<GameObject>();
+        foreach (GameObject obj in healthBarObjects)
+        {
+            if (obj.name.Contains("EnemyHealthBar") || obj.name.Contains("HealthBar"))
+            {
+                Debug.Log($"Destroying health bar object: {obj.name}");
+                Destroy(obj);
+            }
+        }
+    }
+
+    // Destroy all damage indicators
+    private void DestroyAllDamageIndicators()
+    {
+        // Find and destroy all objects with DamageIndicator component
+        DamageIndicator[] indicators = FindObjectsOfType<DamageIndicator>();
+        foreach (DamageIndicator indicator in indicators)
+        {
+            Destroy(indicator.gameObject);
+        }
+        
+        // Also find any objects that might have been created with the name pattern
+        GameObject[] damageObjects = GameObject.FindGameObjectsWithTag("Untagged"); // No specific tag, but we can filter by name
+        foreach (GameObject obj in damageObjects)
+        {
+            if (obj.name.StartsWith("DamageIndicator_"))
+            {
+                Destroy(obj);
+            }
         }
     }
 }

@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class EnemyAI : MonoBehaviour 
@@ -37,6 +39,14 @@ public class EnemyAI : MonoBehaviour
     [Range(0, 1)]
     public float smoothingFactor = 0.2f;        // 0 = no smoothing, 1 = instant change
 
+    // Added path commitment parameters
+    [Header("Path Commitment")]
+    [Range(0, 1)]
+    public float pathCommitmentStrength = 0.6f; // How strongly to commit to chosen path
+    public float pathChangeInterval = 1.2f;     // How often to allow major path changes
+    private float lastPathChangeTime = 0f;      // Track when we last changed path
+    private Vector2 committedDirection = Vector2.zero; // Currently committed direction
+
     private Vector2 lastMovementDirection = Vector2.zero;
     private float raycastTimer = 0f;            // Timer for throttling raycasts
     private float raycastInterval = 0.1f;       // Reduced from 0.2f for more responsive obstacle detection
@@ -49,7 +59,9 @@ public class EnemyAI : MonoBehaviour
     private float randomOffsetStrength = 0.3f;
     
     private Bounds groundBounds;
-    
+    private float disabledTime = 0f;
+    private bool wasManuallyDisabled = false;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -98,9 +110,23 @@ public class EnemyAI : MonoBehaviour
         
         // Add a random offset to make each enemy behave slightly differently
         randomOffset = Random.insideUnitCircle.normalized * randomOffsetStrength;
+        randomOffsetTimer = Random.Range(0, randomOffsetInterval);
         
         // Get the ground bounds for level constraints
         FindGroundBounds();
+    }
+    
+    void OnEnable()
+    {
+        // Reset flag when enabled
+        wasManuallyDisabled = false;
+    }
+
+    void OnDisable()
+    {
+        // Record time when disabled
+        disabledTime = Time.time;
+        wasManuallyDisabled = true;
     }
     
     void FixedUpdate()
@@ -198,6 +224,16 @@ public class EnemyAI : MonoBehaviour
         }
     }
     
+    void Update()
+    {
+        // Emergency recovery from being disabled too long
+        if (!enabled && wasManuallyDisabled && Time.time - disabledTime > 2.0f)
+        {
+            Debug.Log("EnemyAI emergency recovery from prolonged disabled state");
+            enabled = true;
+        }
+    }
+    
     private Vector2 CalculateSteering(Vector2 currentPosition, Vector2 desiredDirection)
     {
         // Check for stuck detection - cast rays in multiple directions
@@ -222,6 +258,27 @@ public class EnemyAI : MonoBehaviour
             // If we're stuck, use a wider angle range to find an escape route
             float searchAngleSpan = stuckAgainstWall ? 270f : rayAngleSpan;
             int searchRayCount = stuckAgainstWall ? 8 : rayCount;
+
+            // Check if we have a committed direction that still works
+            bool canUseCommittedDirection = false;
+            if (committedDirection.sqrMagnitude > 0.1f && Time.time - lastPathChangeTime < pathChangeInterval)
+            {
+                // Cast a ray along our committed direction
+                RaycastHit2D hitCommitted = Physics2D.Raycast(currentPosition, committedDirection, 
+                                                   obstacleDetectionDistance, obstacleLayerMask);
+                
+                // If the committed direction is still clear enough, keep using it
+                if (hitCommitted.collider == null || hitCommitted.distance > obstacleDetectionDistance * 0.7f)
+                {
+                    canUseCommittedDirection = true;
+                    
+                    // Return the committed direction with a blend toward the player
+                    return Vector2.Lerp(committedDirection, desiredDirection, 0.2f).normalized;
+                }
+            }
+            
+            // Clearance map to track the best angles
+            List<KeyValuePair<float, float>> clearanceMap = new List<KeyValuePair<float, float>>();
             
             for (int i = 0; i < searchRayCount; i++)
             {
@@ -232,28 +289,79 @@ public class EnemyAI : MonoBehaviour
                 RaycastHit2D hit = Physics2D.Raycast(currentPosition, rayDirection, 
                                                    obstacleDetectionDistance, obstacleLayerMask);
                 
+                // Calculate clearance - how far until we hit something
+                float clearance = hit.collider == null ? obstacleDetectionDistance : hit.distance;
+                
+                // Store the angle and its clearance
+                clearanceMap.Add(new KeyValuePair<float, float>(angle, clearance));
+                
                 // Debug ray visualization
                 Debug.DrawRay(currentPosition, rayDirection * obstacleDetectionDistance, 
                              hit.collider != null ? Color.red : Color.green, 0.1f);
                                                    
-                // If clear or has more distance than previous best
-                if (hit.collider == null || (hit.distance > maxClearance))
+                // Track the best angle seen so far
+                if (clearance > maxClearance)
                 {
-                    maxClearance = hit.collider == null ? obstacleDetectionDistance : hit.distance;
+                    maxClearance = clearance;
                     bestAngle = angle;
+                }
+            }
+            
+            // Sort clearance map by distance (descending)
+            clearanceMap.Sort((a, b) => b.Value.CompareTo(a.Value));
+            
+            // Use the top 2 clearances to find a more stable path
+            if (clearanceMap.Count >= 2)
+            {
+                // Get the two best clearances
+                KeyValuePair<float, float> best = clearanceMap[0];
+                KeyValuePair<float, float> secondBest = clearanceMap[1];
+                
+                // If they're both good and fairly close to each other
+                if (best.Value > obstacleDetectionDistance * 0.7f && 
+                    secondBest.Value > obstacleDetectionDistance * 0.5f &&
+                    Mathf.Abs(best.Key - secondBest.Key) < 30f)
+                {
+                    // Average the two best angles for more stability
+                    bestAngle = (best.Key + secondBest.Key) / 2f;
                 }
             }
             
             // Use the best angle for steering
             Vector2 steerDirection = Quaternion.Euler(0, 0, bestAngle) * desiredDirection;
             
+            // Commit to this path if it's significantly different from our current commitment
+            // or if we haven't committed to a path in a while
+            if (!canUseCommittedDirection && 
+                (Vector2.Dot(steerDirection, committedDirection) < 0.7f || 
+                 Time.time - lastPathChangeTime >= pathChangeInterval))
+            {
+                committedDirection = steerDirection;
+                lastPathChangeTime = Time.time;
+                Debug.DrawLine(currentPosition, currentPosition + steerDirection * 2f, Color.magenta, 0.5f);
+            }
+            
+            // Blend between the committed direction and the new direction based on commitment strength
+            Vector2 finalDirection;
+            if (committedDirection.sqrMagnitude > 0.1f)
+            {
+                finalDirection = Vector2.Lerp(steerDirection, committedDirection, pathCommitmentStrength).normalized;
+            }
+            else
+            {
+                finalDirection = steerDirection;
+            }
+            
             // If we're stuck, prioritize getting unstuck over heading toward the player
             if (stuckAgainstWall)
             {
-                Debug.DrawLine(currentPosition, currentPosition + steerDirection * 2f, Color.yellow, 0.1f);
+                Debug.DrawLine(currentPosition, currentPosition + finalDirection * 2f, Color.yellow, 0.1f);
+                // Reset commitment when stuck to allow finding a new path
+                committedDirection = Vector2.zero;
+                lastPathChangeTime = 0f;
             }
             
-            return steerDirection.normalized;
+            return finalDirection.normalized;
         }
     }
     
@@ -474,7 +582,9 @@ public class EnemyAI : MonoBehaviour
             PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
             if (playerHealth != null)
             {
+                // Apply damage to player - the player's TakeDamage will handle showing the indicator
                 playerHealth.TakeDamage(attackDamage);
+                Debug.Log($"EnemyAI: Dealt {attackDamage} damage to player");
             }
             else
             {
@@ -494,6 +604,10 @@ public class EnemyAI : MonoBehaviour
         // Check if it's a punching bag, which should handle its own collision response
         if (collision.gameObject.GetComponent<PunchingBag>() != null)
         {
+            // Reset path commitment when hit by a punching bag
+            committedDirection = Vector2.zero;
+            lastPathChangeTime = 0f;
+            
             // Simply add a random offset and minimal recovery time
             // Do NOT disable the AI for long periods
             lastMovementDirection = Vector2.zero; // Reset direction to break out of any loops
@@ -534,11 +648,15 @@ public class EnemyAI : MonoBehaviour
             // Reset steering calculation to account for new situation
             raycastTimer = raycastInterval; // Force a recalculation on next frame
             
+            // Reset path commitment when hitting an obstacle
+            committedDirection = Vector2.zero;
+            lastPathChangeTime = 0f;
+            
             Debug.Log($"Enemy hit obstacle/boundary - adjusted velocity: {rb.linearVelocity}");
         }
     }
     
-    // Add this method to help enemies recover after bag collision
+    // Preventing enemy wall clipping after punching bag hit
     private IEnumerator RecoverFromBagCollision(float recoveryTime)
     {
         // Don't completely disable the AI, just pause movement calculations
@@ -548,6 +666,36 @@ public class EnemyAI : MonoBehaviour
         // Wait for a very short time only
         float actualRecoveryTime = Mathf.Min(recoveryTime, 0.2f);
         yield return new WaitForSeconds(actualRecoveryTime);
+        
+        // Check if we're inside a wall after getting hit
+        bool insideWall = false;
+        Collider2D[] overlaps = new Collider2D[5];
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.SetLayerMask(obstacleLayerMask);
+        filter.useLayerMask = true;
+        
+        // Get our collider
+        Collider2D myCollider = GetComponent<Collider2D>();
+        if (myCollider != null)
+        {
+            int count = Physics2D.OverlapCollider(myCollider, filter, overlaps);
+            insideWall = count > 0;
+            
+            if (insideWall)
+            {
+                Debug.Log("Enemy detected inside wall after punching bag hit - repositioning");
+                
+                // Try to find a safe position
+                Vector2 safePosition = FindSafePosition();
+                
+                if (safePosition != Vector2.zero)
+                {
+                    // Teleport to safe position
+                    transform.position = safePosition;
+                    rb.linearVelocity = Vector2.zero;
+                }
+            }
+        }
         
         // Apply a force in direction toward player to help escape
         if (player != null)
@@ -562,6 +710,59 @@ public class EnemyAI : MonoBehaviour
         
         // Reset direction to prevent loops
         lastMovementDirection = Vector2.zero;
+    }
+    
+    // New method to find a safe position when inside walls
+    private Vector2 FindSafePosition()
+    {
+        // Try several directions to find a safe position
+        Vector2[] directions = new Vector2[] 
+        {
+            Vector2.up,
+            Vector2.right,
+            Vector2.down,
+            Vector2.left,
+            new Vector2(1, 1).normalized,
+            new Vector2(1, -1).normalized,
+            new Vector2(-1, -1).normalized,
+            new Vector2(-1, 1).normalized
+        };
+        
+        Vector2 currentPos = transform.position;
+        Vector2 bestPosition = Vector2.zero;
+        float maxDistance = 0f;
+        
+        // Check each direction
+        foreach (Vector2 dir in directions)
+        {
+            for (float distance = 0.5f; distance <= 3f; distance += 0.5f)
+            {
+                Vector2 testPosition = currentPos + dir * distance;
+                
+                // Check if this position is safe (not inside obstacles)
+                Collider2D[] overlaps = Physics2D.OverlapCircleAll(testPosition, 0.4f, obstacleLayerMask);
+                if (overlaps.Length == 0)
+                {
+                    // Position is safe - try to find one closest to player
+                    if (player != null)
+                    {
+                        float distToPlayer = Vector2.Distance(testPosition, player.position);
+                        if (distToPlayer > maxDistance)
+                        {
+                            maxDistance = distToPlayer;
+                            bestPosition = testPosition;
+                        }
+                    }
+                    else
+                    {
+                        // No player reference, just use the first safe position
+                        return testPosition;
+                    }
+                }
+            }
+        }
+        
+        return bestPosition; // Will be zero if no safe position found
     }
     
     private void FindGroundBounds()
