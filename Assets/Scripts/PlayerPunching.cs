@@ -15,6 +15,12 @@ public class PlayerPunching : MonoBehaviour
     public Slider chargeBar;
     public GameObject aimIndicatorPrefab; // Prefab to instantiate if aimIndicator is not set
     
+    [Header("Audio")]
+    public AudioClip punchSound;
+    public AudioClip chargeSound;
+    private AudioSource audioSource;
+    private bool isPlayingChargeSound = false;
+    
     private bool isCharging = false;
     private float currentChargeTime = 0f;
     private Camera mainCamera;
@@ -32,6 +38,34 @@ public class PlayerPunching : MonoBehaviour
         
         // Setup the charge bar
         SetupChargeBar();
+        
+        // Setup audio source
+        SetupAudioSource();
+    }
+    
+    private void SetupAudioSource()
+    {
+        // Get existing audio source or add a new one
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0f; // 2D sound
+        }
+        
+        // Attempt to load audio clips from Resources if not assigned
+        if (punchSound == null)
+        {
+            punchSound = Resources.Load<AudioClip>("Audio/SFX/Punch");
+            if (punchSound == null) Debug.LogWarning("Punch sound not found in Resources/Audio/SFX/Punch");
+        }
+        
+        if (chargeSound == null)
+        {
+            chargeSound = Resources.Load<AudioClip>("Audio/SFX/Charge");
+            if (chargeSound == null) Debug.LogWarning("Charge sound not found in Resources/Audio/SFX/Charge");
+        }
     }
     
     private void SetupAimIndicator()
@@ -498,6 +532,12 @@ public class PlayerPunching : MonoBehaviour
     {
         Vector3 punchDirection = GetPunchDirection();
         
+        // Play punch sound
+        if (punchSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(punchSound);
+        }
+        
         // First check if any punching bag is within range, regardless of direction
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, punchRange, punchableLayer);
         foreach (Collider2D hitCollider in hitColliders)
@@ -527,25 +567,43 @@ public class PlayerPunching : MonoBehaviour
     
     void StartCharging()
     {
+        // Set charging flag
         isCharging = true;
         currentChargeTime = 0f;
         
-        Debug.Log("Started charging punch");
+        // Play charge sound
+        if (chargeSound != null && audioSource != null && !isPlayingChargeSound)
+        {
+            audioSource.clip = chargeSound;
+            audioSource.loop = true;
+            audioSource.Play();
+            isPlayingChargeSound = true;
+        }
     }
     
     void ContinueCharging()
     {
+        // Add to charge time
         currentChargeTime += Time.deltaTime;
-        
-        // Cap the charge time
-        if (currentChargeTime > chargeTime)
-        {
-            currentChargeTime = chargeTime;
-        }
+        currentChargeTime = Mathf.Clamp(currentChargeTime, 0f, chargeTime);
     }
     
     void ReleaseChargedPunch()
     {
+        // Stop charge sound
+        if (audioSource != null && isPlayingChargeSound)
+        {
+            audioSource.Stop();
+            audioSource.loop = false;
+            isPlayingChargeSound = false;
+        }
+        
+        // Play punch sound
+        if (punchSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(punchSound);
+        }
+        
         Debug.Log($"Released charged punch with power level: {currentChargeTime/chargeTime}");
         
         // Calculate punch power based on charge time

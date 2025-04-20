@@ -17,10 +17,36 @@ public class EnemyHealth : MonoBehaviour
     // Offset position for health bar
     public Vector2 healthBarOffset = new Vector2(0, 0.8f);
     
+    [Header("Audio")]
+    public AudioClip damageSound;
+    private AudioSource audioSource;
+    
     void Start()
     {
         currentHealth = maxHealth;
         CreateHealthBar();
+        
+        // Setup audio source
+        SetupAudioSource();
+    }
+    
+    private void SetupAudioSource()
+    {
+        // Get existing audio source or add a new one
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0f; // 2D sound
+        }
+        
+        // Attempt to load audio clip from Resources if not assigned
+        if (damageSound == null)
+        {
+            damageSound = Resources.Load<AudioClip>("Audio/SFX/EnemyDamage");
+            if (damageSound == null) Debug.LogWarning("Enemy damage sound not found in Resources/Audio/SFX/EnemyDamage");
+        }
     }
     
     void Update()
@@ -174,6 +200,12 @@ public class EnemyHealth : MonoBehaviour
         
         // Clamp health to valid range
         currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+        
+        // Play damage sound
+        if (damageSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(damageSound);
+        }
         
         // Log the damage
         Debug.Log($"Enemy {gameObject.name} took {damage} damage. Health: {currentHealth}/{maxHealth}");

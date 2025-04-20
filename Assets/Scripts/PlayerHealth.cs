@@ -13,11 +13,37 @@ public class PlayerHealth : MonoBehaviour
     [Header("UI Reference")]
     // Reference to the slider in your Canvas
     public Slider healthBar;
+    
+    [Header("Audio")]
+    public AudioClip damageSound;
+    private AudioSource audioSource;
 
     private void Start()
     {
         currentHealth = maxHealth;
         UpdateHealthUI();
+        
+        // Setup audio source
+        SetupAudioSource();
+    }
+    
+    private void SetupAudioSource()
+    {
+        // Get existing audio source or add a new one
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0f; // 2D sound
+        }
+        
+        // Attempt to load audio clip from Resources if not assigned
+        if (damageSound == null)
+        {
+            damageSound = Resources.Load<AudioClip>("Audio/SFX/PlayerDamage");
+            if (damageSound == null) Debug.LogWarning("Player damage sound not found in Resources/Audio/SFX/PlayerDamage");
+        }
     }
 
     // Call this method whenever the player takes damage
@@ -27,6 +53,12 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
         UpdateHealthUI();
 
+        // Play damage sound
+        if (damageSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(damageSound);
+        }
+        
         // Start the damage flash effect
         StartCoroutine(FlashDamage());
         
