@@ -42,12 +42,6 @@ Chrono Thinker is a 2D top-down puzzle-combat game built in Unity, combining rea
 - Iteratively refined based on tester feedback.
 - Improved enemy pathfinding, fairer obstacle spacing, and consistent damage cues in Level 2.
 
-## 🎬 Screenshots
-
-<p align="center">
-  <img src="images/chrono_thinker_screenshot.png" width="600" alt="Chrono Thinker Gameplay">
-</p>
-
 ## 👥 Team
 
 - Aekamjot Singh — [asing888@uwo.ca](mailto:asing888@uwo.ca)
